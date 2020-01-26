@@ -2,13 +2,13 @@
 
 def read_file(filename):
     with open(filename, 'r') as f:
-        N, M = f.readline().split(' ')
+        max_slices, _ = f.readline().split(' ')
         slices = f.readline().split(' ')  
         slices = [int(item) for item in slices]              
-        return N, M, slices
+        return max_slices, slices
 
 if __name__ == '__main__':
-    n,m, slices = read_file('input/c_medium.in')
+    max_slices, slices = read_file('input/c_medium.in')
 
-    print(n, m)
+    print(max_slices)
     print(slices)
