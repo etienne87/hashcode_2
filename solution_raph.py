@@ -6,18 +6,18 @@ import argparse
 
 
 def score_lib(lib, days_left):
-
+    return 1-lib["sign_up_t"]
 
     return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"]), lib["num_books_in_lib"])
 
 
 def choose_library(libraries, days_left):
     id_max = None
-    score_max = 0
+    score_max = None
     for i, lib in enumerate(libraries):
         if not lib["taken"]:
             score = score_lib(lib, days_left)
-            if score > score_max:
+            if score_max is None or score > score_max:
                 id_max = i
                 score_max = score
     if id_max is not None:
@@ -51,6 +51,8 @@ def choose_books_for_lib(lib, days_left):
         books_taken += [book]
     output_text += str(len(books_taken)) + "\n"
     output_text += middle_text[:-1] + "\n"
+    if len(books_taken)==0:
+        return "", []
     return output_text, books_taken
 
 
@@ -79,8 +81,15 @@ def main(id_input):
         lib["id"] = id_lib
         lib["set_books_with_score"] = set()
         lib["taken"]=0
+
+
+        score_in_lib = 0
+
         for book in lib["book_ids"]:
             lib["set_books_with_score"].add((book, book_scores[book]))
+            score_in_lib += book_scores[book]
+
+        lib[""]
 
 
     STOP = False
@@ -100,7 +109,8 @@ def main(id_input):
         days_left -= lib_chosen["sign_up_t"]
         output_text, books_taken = choose_books_for_lib(lib_chosen, days_left)
 
-        number_output_libs += 1
+        if len(books_taken)>0:
+            number_output_libs += 1
 
         #print("before", libs)
 
@@ -127,7 +137,7 @@ def main(id_input):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='book')
 
-    parser.add_argument('--input_file_indice', type=int, default=3)
+    parser.add_argument('--input_file_indice', type=int, default=1)
 
     args = parser.parse_args()
 
