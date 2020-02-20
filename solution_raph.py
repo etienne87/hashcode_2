@@ -6,6 +6,8 @@ import argparse
 
 
 def score_lib(lib, days_left):
+
+
     return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"]), lib["num_books_in_lib"])
 
 
