@@ -1,12 +1,12 @@
 import os, glob
 from read import read_file
-
-
+import time
 
 class Book:
-    def __init__(self, id, score):
+    def __init__(self, id, score, occ):
         self.id = id
         self.score = score
+        self.weighted_score = score - 0.1 * (1+occ)
 
 class Library:
     def __init__(self, N, T, M, books):
@@ -16,10 +16,22 @@ class Library:
         self.books = sorted(books, key=lambda book:book.score, reverse=True)
 
 
+def book_occurences(libraries, N):
+    M = len(libraries)
+    book_occ = [0 for i in range(N)]
+    for row, lib in enumerate(libraries):
+        book_ids = lib['book_ids']
+        for id in book_ids:
+            book_occ[id] += 1
+    return book_occ
+
+
 def my_read(file):
     num_days, book_scores, libs = read_file(file)
 
-    books = [Book(i, score) for i, score in enumerate(book_scores)]
+    book_occ = book_occurences(libs, len(book_scores))
+
+    books = [Book(i, score, book_occ[i]) for i, score in enumerate(book_scores)]
     libraries = []
     for lib in libs:
         num_books_in_lib = lib['num_books_in_lib']
@@ -31,36 +43,43 @@ def my_read(file):
 
     return libraries, books, num_days
 
-
-def compute_score(library, unscanned_books, remaining_days):
-    remaining_days = remaining_days - library.sign_up_time
-    if remaining_days <= 0:
-        return 0, []
-
-    #books_shippable = library.books.intersection(unscanned_books)
-    num_shippable = remaining_days * library.shippable_per_day
-
-    #select books that are not unscanned_books
-
+def select_intersection(books, unscanned_books, num_shippable):
     books_shippable = []
-    for book in library.books:
+    for i in range(len(books)):
+        book = books[i]
         if unscanned_books[book.id]:
             books_shippable.append(book)
 
         if len(books_shippable) >= num_shippable:
             break
+    return books_shippable
+
+def compute_score(library, unscanned_books, remaining_days, total_days):
+    remaining_days = remaining_days - library.sign_up_time
+    if remaining_days <= 0:
+        return 0, 0, []
+
+    num_shippable = remaining_days * library.shippable_per_day
+
+    books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
 
     total_score = sum([item.score for item in books_shippable])
 
     out_books_ids = [book.id for book in books_shippable]
-    return total_score, out_books_ids
+
+    weighted_score = total_score - library.sign_up_time * 1e6 / remaining_days
+
+    return weighted_score, total_score, out_books_ids
 
 
 
 def print_scores(scores):
     print([item[1][0] for item in scores])
 
-def optimize(libraries, all_books, days, verbose=True):
+
+
+
+def optimize(libraries, all_books, days, verbose=0):
     id_libs = []
     n_books = []
     books_per_lib = []
@@ -71,6 +90,7 @@ def optimize(libraries, all_books, days, verbose=True):
 
     total_score = 0
 
+
     d = 0
     num_remaining_libs = len(libraries)
     while d < days and num_remaining_libs > 0:
@@ -79,12 +99,12 @@ def optimize(libraries, all_books, days, verbose=True):
 
         remaining_days = days-d
 
-        scores = [(id,compute_score(lib, unscanned_books, remaining_days)) for id, lib in enumerate(libraries) if remaining_libs[id]]
+        scores = [(id,compute_score(lib, unscanned_books, remaining_days, days)) for id, lib in enumerate(libraries) if remaining_libs[id]]
 
         sorted_scores = sorted(scores, key=lambda lib:lib[1][0], reverse=True)
 
         best_lib_id = sorted_scores[0][0]
-        best_lib_score, lib_book_ids = sorted_scores[0][1]
+        weighed_score, best_lib_score, lib_book_ids = sorted_scores[0][1]
 
         if best_lib_score == 0:
             break
@@ -104,6 +124,8 @@ def optimize(libraries, all_books, days, verbose=True):
         for book_id in lib_book_ids:
             unscanned_books[book_id] = 0
 
+
+
     return total_score, id_libs, n_books, books_per_lib
 
 
@@ -119,7 +141,7 @@ def write_solution(result_file, id_libs, n_books, books_per_lib):
             file.write("\n")
 
 
-def run():
+def run_abcef():
     tab_input = ["a_example.txt",
                  "b_read_on.txt",
                  "c_incunabula.txt",
@@ -127,7 +149,6 @@ def run():
                  "e_so_many_books.txt",
                  "f_libraries_of_the_world.txt",
                  ]
-
 
     total_score = 0
     for file in tab_input:
@@ -144,10 +165,20 @@ def run():
 
     return total_score
 
-if __name__ == '__main__':
-
-    #run()
-
-    #debug
+def run_d():
+    file = 'input/d_tough_choices.txt'
     libraries, books, num_days = my_read('input/d_tough_choices.txt')
-    optimize(libraries, books, num_days)
+    file_score, id_libs, n_books, books_per_lib = optimize(libraries, books, num_days, 1)
+    result_file = "result/result_" + file
+    write_solution(result_file, id_libs, n_books, books_per_lib)
+
+
+if __name__ == '__main__':
+    import sys
+
+    if int(sys.argv[1]) == 1:
+        run_d()
+    else:
+        run_abcef()
+
+
