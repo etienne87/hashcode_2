@@ -6,9 +6,11 @@ import argparse
 
 
 def score_lib(lib, days_left):
-    return 1-lib["sign_up_t"]
+    #return 1-lib["sign_up_t"]
+    if lib["num_books_in_lib"]<=0:
+        return -99999999
 
-    return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"]), lib["num_books_in_lib"])
+    return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"])* lib["score_in_lib"]/lib["num_books_in_lib"], lib["num_books_in_lib"]* lib["score_in_lib"]/lib["num_books_in_lib"])
 
 
 def choose_library(libraries, days_left):
@@ -33,6 +35,8 @@ def update_libs(libraries, books_taken, books_score):
                 lib["num_books_in_lib"] -= 1
                 lib["set_books"].remove(book)
                 lib["set_books_with_score"].remove((book, books_score[book]))
+                lib["mean_score"] = lib["score_in_lib"] - books_score[book]
+
     return libraries
 
 
@@ -89,7 +93,8 @@ def main(id_input):
             lib["set_books_with_score"].add((book, book_scores[book]))
             score_in_lib += book_scores[book]
 
-        lib[""]
+
+        lib["score_in_lib"] = score_in_lib
 
 
     STOP = False
