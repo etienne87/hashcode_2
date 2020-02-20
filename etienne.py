@@ -1,12 +1,15 @@
 import os, glob
 from read import read_file
 import time
+from sortedcontainers import SortedSet
 
 class Book:
-    def __init__(self, id, score, occ):
+    def __init__(self, id, score, occ=0):
         self.id = id
         self.score = score
-        self.weighted_score = score - 0.1 * (1+occ)
+
+        #bullshit score using number of occurences of same book
+        #self.weighted_score = score - 0.1 * (1+occ)
 
 class Library:
     def __init__(self, N, T, M, books):
@@ -15,6 +18,7 @@ class Library:
         self.shippable_per_day = M
         self.books = sorted(books, key=lambda book:book.score, reverse=True)
 
+        
 
 def book_occurences(libraries, N):
     M = len(libraries)
@@ -28,9 +32,7 @@ def book_occurences(libraries, N):
 
 def my_read(file):
     num_days, book_scores, libs = read_file(file)
-
     book_occ = book_occurences(libs, len(book_scores))
-
     books = [Book(i, score, book_occ[i]) for i, score in enumerate(book_scores)]
     libraries = []
     for lib in libs:
@@ -43,16 +45,18 @@ def my_read(file):
 
     return libraries, books, num_days
 
-def select_intersection(books, unscanned_books, num_shippable):
+
+def select_intersection(books, unscanned_books, num_shippable, early_stop=1):
     books_shippable = []
     for i in range(len(books)):
         book = books[i]
         if unscanned_books[book.id]:
             books_shippable.append(book)
 
-        if len(books_shippable) >= num_shippable:
+        if len(books_shippable) >= num_shippable and early_stop:
             break
     return books_shippable
+
 
 def compute_score(library, unscanned_books, remaining_days, total_days):
     remaining_days = remaining_days - library.sign_up_time
@@ -67,16 +71,9 @@ def compute_score(library, unscanned_books, remaining_days, total_days):
 
     out_books_ids = [book.id for book in books_shippable]
 
-    weighted_score = total_score - library.sign_up_time * 1e6 / remaining_days
+    weighted_score = total_score / library.sign_up_time
 
     return weighted_score, total_score, out_books_ids
-
-
-
-def print_scores(scores):
-    print([item[1][0] for item in scores])
-
-
 
 
 def optimize(libraries, all_books, days, verbose=0):
@@ -86,10 +83,8 @@ def optimize(libraries, all_books, days, verbose=0):
 
     remaining_libs = [1 for _ in range(len(libraries))]
     unscanned_books = [1 for _ in range(len(all_books))]
-
-
+   
     total_score = 0
-
 
     d = 0
     num_remaining_libs = len(libraries)
@@ -99,9 +94,14 @@ def optimize(libraries, all_books, days, verbose=0):
 
         remaining_days = days-d
 
+        start = time.time()
         scores = [(id,compute_score(lib, unscanned_books, remaining_days, days)) for id, lib in enumerate(libraries) if remaining_libs[id]]
+        #print('compute scores: ', time.time()-start)
 
+        start = time.time()
         sorted_scores = sorted(scores, key=lambda lib:lib[1][0], reverse=True)
+        #print('sorting: ', time.time()-start)
+
 
         best_lib_id = sorted_scores[0][0]
         weighed_score, best_lib_score, lib_book_ids = sorted_scores[0][1]
@@ -120,11 +120,9 @@ def optimize(libraries, all_books, days, verbose=0):
         #remove lib
         remaining_libs[best_lib_id] = 0
         num_remaining_libs -= 1
-        #remove book
+        #remove book fro unscanned_books array
         for book_id in lib_book_ids:
             unscanned_books[book_id] = 0
-
-
 
     return total_score, id_libs, n_books, books_per_lib
 
@@ -141,23 +139,40 @@ def write_solution(result_file, id_libs, n_books, books_per_lib):
             file.write("\n")
 
 
-def run_abcef():
+def run(tabs=[0,1,2,3,4,5]):
     tab_input = ["a_example.txt",
                  "b_read_on.txt",
                  "c_incunabula.txt",
-                 #"d_tough_choices.txt",
+                 "d_tough_choices.txt",
                  "e_so_many_books.txt",
                  "f_libraries_of_the_world.txt",
-                 ]
+    ]
+
+    myteam_leaderboard = [
+        21, 
+        5822900,
+        5690378,
+        5028530,
+        5043567,
+        5345656
+    ]
+
+    tab_input = [tab_input[id] for id in tabs]
+    current_scores = [myteam_leaderboard[id]*1e-6 for id in tabs]
+
+    total_to_beat = sum(current_scores)
 
     total_score = 0
-    for file in tab_input:
+    for i, file in enumerate(tab_input):
         print(file)
         libraries, books, num_days = my_read("input/"+file)
         file_score, id_libs, n_books, books_per_lib = optimize(libraries, books, num_days)
         total_score += file_score
 
-        print(file, ': file score: ', file_score*1e-6, ' total score: ', total_score*1e-6)
+        print(file, ': file score: ', file_score*1e-6, '/', current_scores[i], ' total score: ', total_score*1e-6, '/', total_to_beat)
+
+        if file_score > current_scores[i]:
+            print(file, ': beaten!')
 
         result_file = "result/result_"+file
         write_solution(result_file, id_libs, n_books, books_per_lib)
@@ -166,8 +181,8 @@ def run_abcef():
     return total_score
 
 def run_d():
-    file = 'input/d_tough_choices.txt'
-    libraries, books, num_days = my_read('input/d_tough_choices.txt')
+    file = 'd_tough_choices.txt'
+    libraries, books, num_days = my_read("input/"+file)
     file_score, id_libs, n_books, books_per_lib = optimize(libraries, books, num_days, 1)
     result_file = "result/result_" + file
     write_solution(result_file, id_libs, n_books, books_per_lib)
@@ -176,9 +191,13 @@ def run_d():
 if __name__ == '__main__':
     import sys
 
+    start = time.time()
     if int(sys.argv[1]) == 1:
         run_d()
+    elif int(sys.argv[1]) == 2:
+        run([0,1,2,3,4,5])
     else:
-        run_abcef()
+        run()
 
 
+    print('program took: ', time.time()-start)
