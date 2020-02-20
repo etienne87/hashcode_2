@@ -3,7 +3,7 @@ import numpy as np
 import os
 from read import read_file
 
-def compute_score_library(lib_dict, tab_score_book, remaining_days):
+def compute_score_library(lib_dict, tab_score_book, remaining_days, heuristic_on_day):
     sign_up_time = lib_dict['sign_up_t']
     shippable_per_day = lib_dict['ship_per_day']
 
@@ -16,7 +16,7 @@ def compute_score_library(lib_dict, tab_score_book, remaining_days):
     tab_book_indice_current_library_sorted_by_score = np.argsort(-tab_score_book[tab_book_current_library])
     tab_book_current_library_sorted_by_score = tab_book_current_library[tab_book_indice_current_library_sorted_by_score]
 
-    total_score = np.sum(tab_score_book[tab_book_current_library_sorted_by_score[0:num_book_possible]])
+    total_score = np.sum(tab_score_book[tab_book_current_library_sorted_by_score[0:num_book_possible]]) - heuristic_on_day*sign_up_time
     return total_score, tab_book_current_library_sorted_by_score[0:num_book_possible]
 
 parser = argparse.ArgumentParser(description='book')
@@ -60,17 +60,17 @@ remaining_days = N_days
 
 tab_list_id_lib_still_possible = [i for i in range(N_lib)]
 
-heuristic_on_day = 10
+heuristic_on_day = 1e6/N_days
 
 with open(result_file, 'w') as file:
     file.write(str(N_lib) + "\n")
     while len(tab_list_id_lib_still_possible) > 0:
         print("len(tab_list_id_lib_still_possible) = ", len(tab_list_id_lib_still_possible))
         chosen_lib = tab_list_id_lib_still_possible[0]
-        max_score, chosen_book = compute_score_library(libs[chosen_lib], tab_score_book=tab_score_book, remaining_days=remaining_days)
+        max_score, chosen_book = compute_score_library(libs[chosen_lib], tab_score_book=tab_score_book, remaining_days=remaining_days, heuristic_on_day=heuristic_on_day)
         for indice_lib in tab_list_id_lib_still_possible:
             lib_dict = libs[indice_lib]
-            current_score_lib, current_chosen_book = compute_score_library(lib_dict, tab_score_book=tab_score_book, remaining_days=remaining_days)
+            current_score_lib, current_chosen_book = compute_score_library(lib_dict, tab_score_book=tab_score_book, remaining_days=remaining_days, heuristic_on_day=heuristic_on_day)
             if current_score_lib > max_score:
                 max_score = current_score_lib
                 chosen_lib = indice_lib
