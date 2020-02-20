@@ -5,7 +5,7 @@ from read import read_file
 import argparse
 
 
-def score_lib(lib, days_left, book_occurence):
+def score_lib(lib, days_left):
     #return 1-lib["sign_up_t"]
     if lib["num_books_in_lib"]<=0:
         return -99999999
@@ -19,7 +19,7 @@ def score_lib(lib, days_left, book_occurence):
         sorted_list = sorted(lib["set_books_with_score"], key=lambda x: x[1])[::-1]
         score_lib = 0
         for i in range(nb_max_books):
-            score_lib += sorted_list[i][1] / book_occurence[sorted_list[i][0]]
+            score_lib += sorted_list[i][1]
 
 
     return score_lib/lib["sign_up_t"]
@@ -27,12 +27,12 @@ def score_lib(lib, days_left, book_occurence):
 #    return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"]) * lib["score_in_lib"]/lib["num_books_in_lib"], lib["num_books_in_lib"]* lib["score_in_lib"]/lib["num_books_in_lib"])
 
 
-def choose_library(libraries, days_left, book_occurence):
+def choose_library(libraries, days_left):
     id_max = None
     score_max = None
     for i, lib in enumerate(libraries):
         if not lib["taken"]:
-            score = score_lib(lib, days_left, book_occurence)
+            score = score_lib(lib, days_left)
             if score_max is None or score > score_max:
                 id_max = i
                 score_max = score
@@ -74,23 +74,6 @@ def choose_books_for_lib(lib, days_left):
     return output_text, books_taken
 
 
-def count_occurence(libs, book_scores):
-    book_occurence = np.zeros(len(book_scores))
-
-    for lib in libs:
-        for book in lib["set_books"]:
-            book_occurence[book] += 1
-
-    return book_occurence
-
-
-def update_book_occurence(book_occurence, lib):
-    for book in lib["set_books"]:
-        book_occurence[book] -= 1
-    return book_occurence
-
-
-
 def main(id_input):
     B = 100
 
@@ -127,38 +110,6 @@ def main(id_input):
 
         lib["score_in_lib"] = score_in_lib
 
-
-    book_occurence = count_occurence(libs, book_scores)
-
-    STOP = False
-
-    number_output_libs = 0
-
-    global_output = ""
-    middle_output = ""
-    while not STOP and days_left > 0:
-        print(days_left)
-        id_best_lib = choose_library(libs, days_left=days_left, book_occurence=book_occurence)
-        if id_best_lib is None:
-            print("no more libs available")
-            break
-
-        lib_chosen = libs[id_best_lib]
-        book_occurence = update_book_occurence(book_occurence, lib_chosen)
-        days_left -= lib_chosen["sign_up_t"]
-        output_text, books_taken = choose_books_for_lib(lib_chosen, days_left)
-
-        if len(books_taken)>0:
-            number_output_libs += 1
-
-        #print("before", libs)
-
-        libs = update_libs(libs, books_taken, book_scores)
-
-        middle_output += output_text
-
-
-    #print("after", libs)
 
 
     global_output = "{}\n".format(number_output_libs) + middle_output

@@ -16,12 +16,13 @@ def compute_score_library(lib_dict, tab_score_book, remaining_days, heuristic_on
     tab_book_indice_current_library_sorted_by_score = np.argsort(-tab_score_book[tab_book_current_library])
     tab_book_current_library_sorted_by_score = tab_book_current_library[tab_book_indice_current_library_sorted_by_score]
 
-    total_score = np.sum(tab_score_book[tab_book_current_library_sorted_by_score[0:num_book_possible]]) - heuristic_on_day*sign_up_time
+    total_score = np.sum(tab_score_book[tab_book_current_library_sorted_by_score[0:num_book_possible]])/(sign_up_time + heuristic_on_day)#- heuristic_on_day*sign_up_time
     return total_score, tab_book_current_library_sorted_by_score[0:num_book_possible]
 
 parser = argparse.ArgumentParser(description='book')
 
 parser.add_argument('--input_file_indice', type=int)
+parser.add_argument('--heuristic', type=float)
 
 args = parser.parse_args()
 
@@ -54,13 +55,19 @@ print("N_days = ", N_days)
 
 tab_indice_libraries_sorted_by_time_registration = np.argsort(list_time_registration_lib)
 
-result_file = hard_code_path_to_input+"/result/result_"+tab_input[args.input_file_indice]
+
 
 remaining_days = N_days
 
 tab_list_id_lib_still_possible = [i for i in range(N_lib)]
 
-heuristic_on_day = 1e6/N_days
+
+new_heuristic_tab = [10e6, 1e5]
+day = 145
+factor_for_day = day/N_days * new_heuristic_tab[1] + (N_days-day) * new_heuristic_tab[0]
+heuristic_on_day = args.heuristic
+
+result_file = hard_code_path_to_input+"/result/result_heur_"+str(heuristic_on_day)+"_"+tab_input[args.input_file_indice]
 
 with open(result_file, 'w') as file:
     file.write(str(N_lib) + "\n")
