@@ -10,7 +10,21 @@ def score_lib(lib, days_left):
     if lib["num_books_in_lib"]<=0:
         return -99999999
 
-    return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"])* lib["score_in_lib"]/lib["num_books_in_lib"], lib["num_books_in_lib"]* lib["score_in_lib"]/lib["num_books_in_lib"])
+
+    would_be_left = days_left - lib["sign_up_t"]
+    nb_max_books = would_be_left * lib["ship_per_day"]
+    if nb_max_books > lib["num_books_in_lib"]:
+        score_lib = lib["score_in_lib"]
+    else:
+        sorted_list = sorted(lib["set_books_with_score"], key=lambda x: x[1])[::-1]
+        score_lib = 0
+        for i in range(nb_max_books):
+            score_lib += sorted_list[i][1]
+
+
+    return score_lib/lib["sign_up_t"]
+
+#    return min(lib["ship_per_day"]*(days_left-lib["sign_up_t"]) * lib["score_in_lib"]/lib["num_books_in_lib"], lib["num_books_in_lib"]* lib["score_in_lib"]/lib["num_books_in_lib"])
 
 
 def choose_library(libraries, days_left):
@@ -35,7 +49,7 @@ def update_libs(libraries, books_taken, books_score):
                 lib["num_books_in_lib"] -= 1
                 lib["set_books"].remove(book)
                 lib["set_books_with_score"].remove((book, books_score[book]))
-                lib["mean_score"] = lib["score_in_lib"] - books_score[book]
+                lib["score_in_lib"] = lib["score_in_lib"] - books_score[book]
 
     return libraries
 
