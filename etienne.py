@@ -1,24 +1,7 @@
 import os, glob
-from input import read_file
-#from compute_score import compute_score
+from read import read_file
 
 
-#def optimize(data):
-#    return ans, total
-
-"""
-def run_all(dir):
-    filenames = glob.glob(dir + "/*.in")
-    print(filenames)
-    for filename in filenames:
-        max_slices, slices = read_file(filename)
-        total_pizza_types = len(slices)
-        ans, total = optimize_max_slices(slices, max_slices)
-        print("problem: ", os.path.basename(filename), ": ", total, max_slices, max_slices - total)
-        score = compute_score(max_slices, total_pizza_types, slices, len(ans), ans)
-        total += score
-    return total
-"""
 
 class Book:
     def __init__(self, id, score):
@@ -32,6 +15,22 @@ class Library:
         self.shippable_per_day = M
         self.book_ids = set(books)
 
+def my_read(file):
+    num_days, book_scores, libs = read_file(file)
+
+    books = [Book(i, score) for i, score in enumerate(book_scores)]
+    libraries = []
+    for lib in libs:
+        num_books_in_lib = lib['num_books_in_lib']
+        sign_up_t = lib['sign_up_t']
+        ship_per_day = lib['ship_per_day']
+        book_ids = lib['book_ids']
+        lib_books = books[book_ids]
+        #convert to books
+        libraries.append(Library(num_books_in_lib, sign_up_t, ship_per_day, lib_books))
+
+    return libraries, books, num_days
+
 
 def compute_score(library, unscanned_books, remaining_days):
     if library.sign_up_time > remaining_days:
@@ -41,25 +40,21 @@ def compute_score(library, unscanned_books, remaining_days):
 
     #sort books
     books_shippable = list(books_shippable)
-    books_sorted = sorted(books_shippable, key=lambda book:book.score)[:num_shippable]
+    best_books = sorted(books_shippable, key=lambda book:book.score)[:num_shippable]
 
-    total_score = [item.score for item in books_sorted]
-    return total_score
+    total_score = [item.score for item in best_books]
+    return total_score, best_books
 
 
+def optimize(libraries, all_books, days):
+    d = 0
+    while d < days:
+        pass
 
 
 
 
 
 if __name__ == '__main__':
-    # max_slices, slices = read_file('input/d_also_big.in')
-    # total_pizza_types = len(slices)
-    # ans, total = optimize_max_slices(slices, max_slices)
-    # print(total, max_slices, max_slices-total)
-    # score = compute_score(max_slices, total_pizza_types, slices, len(ans), ans)
-    # print(score)
 
-    #score = run_all('input')
-
-    print('total score: ', score)
+    libraries, books = my_read('input/a_example.txt')
