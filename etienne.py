@@ -1,6 +1,6 @@
-import os, glob
+import os, glob, math, tqdm, time
 from read import read_file
-import time
+
 
 class Book:
     def __init__(self, id, score, occ=0):
@@ -8,7 +8,7 @@ class Book:
         self.score = score
 
         #bullshit score using number of occurences of same book
-        #self.weighted_score = score - 0.1 * (1+occ)
+        self.weighted_score = score / (1+occ)
 
 class Library:
     def __init__(self, N, T, M, books):
@@ -16,8 +16,7 @@ class Library:
         self.sign_up_time = T
         self.shippable_per_day = M
         self.books = sorted(books, key=lambda book:book.score, reverse=True)
-        self.book_selection = [None for item in self.books] #prealloc
-        
+      
 
 def book_occurences(libraries, N):
     M = len(libraries)
@@ -44,24 +43,8 @@ def my_read(file):
 
     return libraries, books, num_days
 
-
-def select_intersection_prealloc(books, books_shippable, unscanned_books, num_shippable, early_stop=1):
-    j = 0
-
-    total_score = 0
-    for i in range(len(books)):
-        book = books[i]
-        if unscanned_books[book.id]:
-            books_shippable[j] = book
-            j+= 1
-            total_score += book.score
-
-        if j >= num_shippable and early_stop:
-            break
-    return total_score
-
-def select_intersection(books, books_shippable, unscanned_books, num_shippable, early_stop=1):
-    #books_shippable = []
+def select_intersection(books, unscanned_books, num_shippable, early_stop=1):
+    books_shippable = []
     for i in range(len(books)):
         book = books[i]
         if unscanned_books[book.id]:
@@ -79,16 +62,16 @@ def compute_score(library, unscanned_books, remaining_days, total_days):
 
     num_shippable = remaining_days * library.shippable_per_day
 
-    #books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
-    total_score = select_intersection_prealloc(library.books, library.book_selection, unscanned_books, num_shippable)
-    books_shippable = library.book_selection[:num_shippable]
-
-
-    #total_score = sum([item.score for item in books_shippable])
+    books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
+ 
+    total_score = sum([item.score for item in books_shippable])
 
     out_books_ids = [book.id for book in books_shippable]
 
-    weighted_score = total_score / library.sign_up_time * remaining_days
+    # for this to be true, you need to confirm that N libs with signup_time/N exist
+    # so if 
+    weighted_score = total_score / library.sign_up_time
+
 
     return weighted_score, total_score, out_books_ids
 
@@ -103,8 +86,11 @@ def optimize(libraries, all_books, days, verbose=0):
    
     total_score = 0
 
+  
     d = 0
     num_remaining_libs = len(libraries)
+    pbar = tqdm.tqdm(total=days)
+
     while d < days and num_remaining_libs > 0:
         if verbose:
             print(d, '/', days, ' total score: ', total_score*1e-6)
@@ -115,6 +101,7 @@ def optimize(libraries, all_books, days, verbose=0):
         scores = [(id,compute_score(lib, unscanned_books, remaining_days, days)) for id, lib in enumerate(libraries) if remaining_libs[id]]
         #print('compute scores: ', time.time()-start)
 
+       
         start = time.time()
         sorted_scores = sorted(scores, key=lambda lib:lib[1][0], reverse=True)
         #print('sorting: ', time.time()-start)
@@ -140,6 +127,8 @@ def optimize(libraries, all_books, days, verbose=0):
         #remove book from unscanned_books array
         for book_id in lib_book_ids:
             unscanned_books[book_id] = 0
+
+        pbar.update(1)
 
     return total_score, id_libs, n_books, books_per_lib
 
@@ -206,15 +195,23 @@ def run_d():
 
 
 if __name__ == '__main__':
-    import sys
+    import argparse
+    parser = argparse.ArgumentParser(description='book')
+
+    parser.add_argument('--tabs',
+                      nargs='+',
+                      type=int,
+                      dest='list',
+                      default=[0,1,2,3,4,5],
+                      help='<Required> Set flag',
+                      required=True)
+    args = parser.parse_args()
+    
+    tabs = args.list
+
+    print('run on: ', tabs)
 
     start = time.time()
-    if int(sys.argv[1]) == 1:
-        run_d()
-    elif int(sys.argv[1]) == 2:
-        run([0,1,2,3,4,5])
-    else:
-        run()
-
+    run(tabs)
 
     print('program took: ', time.time()-start)
