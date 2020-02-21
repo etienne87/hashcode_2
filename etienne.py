@@ -1,7 +1,6 @@
 import os, glob
 from read import read_file
 import time
-from sortedcontainers import SortedSet
 
 class Book:
     def __init__(self, id, score, occ=0):
@@ -17,7 +16,7 @@ class Library:
         self.sign_up_time = T
         self.shippable_per_day = M
         self.books = sorted(books, key=lambda book:book.score, reverse=True)
-
+        self.book_selection = [None for item in self.books] #prealloc
         
 
 def book_occurences(libraries, N):
@@ -46,8 +45,23 @@ def my_read(file):
     return libraries, books, num_days
 
 
-def select_intersection(books, unscanned_books, num_shippable, early_stop=1):
-    books_shippable = []
+def select_intersection_prealloc(books, books_shippable, unscanned_books, num_shippable, early_stop=1):
+    j = 0
+
+    total_score = 0
+    for i in range(len(books)):
+        book = books[i]
+        if unscanned_books[book.id]:
+            books_shippable[j] = book
+            j+= 1
+            total_score += book.score
+
+        if j >= num_shippable and early_stop:
+            break
+    return total_score
+
+def select_intersection(books, books_shippable, unscanned_books, num_shippable, early_stop=1):
+    #books_shippable = []
     for i in range(len(books)):
         book = books[i]
         if unscanned_books[book.id]:
@@ -65,13 +79,16 @@ def compute_score(library, unscanned_books, remaining_days, total_days):
 
     num_shippable = remaining_days * library.shippable_per_day
 
-    books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
+    #books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
+    total_score = select_intersection_prealloc(library.books, library.book_selection, unscanned_books, num_shippable)
+    books_shippable = library.book_selection[:num_shippable]
 
-    total_score = sum([item.score for item in books_shippable])
+
+    #total_score = sum([item.score for item in books_shippable])
 
     out_books_ids = [book.id for book in books_shippable]
 
-    weighted_score = total_score / library.sign_up_time
+    weighted_score = total_score / library.sign_up_time * remaining_days
 
     return weighted_score, total_score, out_books_ids
 
@@ -120,7 +137,7 @@ def optimize(libraries, all_books, days, verbose=0):
         #remove lib
         remaining_libs[best_lib_id] = 0
         num_remaining_libs -= 1
-        #remove book fro unscanned_books array
+        #remove book from unscanned_books array
         for book_id in lib_book_ids:
             unscanned_books[book_id] = 0
 
@@ -171,7 +188,7 @@ def run(tabs=[0,1,2,3,4,5]):
 
         print(file, ': file score: ', file_score*1e-6, '/', current_scores[i], ' total score: ', total_score*1e-6, '/', total_to_beat)
 
-        if file_score > current_scores[i]:
+        if file_score*1e-6 > current_scores[i]:
             print(file, ': beaten!')
 
         result_file = "result/result_"+file
