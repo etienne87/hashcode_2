@@ -97,8 +97,6 @@ def optimize(libraries, all_books, days, verbose=0):
     unscanned_books = [1 for _ in range(len(all_books))]
 
   
-    # book_occ = book_occurences_v2(libraries, len(all_books))
-
     total_score = 0
   
     d = 0
@@ -116,7 +114,6 @@ def optimize(libraries, all_books, days, verbose=0):
         sorted_scores = sorted(scores, key=lambda lib:lib[1], reverse=True)
         best_lib_id = sorted_scores[0][0]
         best_lib_id, _, best_lib_score, lib_book_ids = sorted_scores[0]
-       
 
 
         if best_lib_score == 0:
@@ -136,10 +133,8 @@ def optimize(libraries, all_books, days, verbose=0):
         #remove book from unscanned_books array
         for book_id in lib_book_ids:
             unscanned_books[book_id] = 0
-            book_occ[book_id] -= 1
-                    
+         
         
-
         pbar.update(max(d/days, num_remaining_libs/len(libraries)))
 
     print('days: ', d,'/', days)
@@ -149,26 +144,31 @@ def optimize(libraries, all_books, days, verbose=0):
 
 
 class Solution:
-    def __init__(self, nbooks, nlibs, total_days, libraries):
+    def __init__(self, nbooks, nlibs, total_days):
         self.id_libs = []
         self.books_per_lib = []
+        self.n_books = []
         self.total_score = 0
         self.days = 0
         self.total_days = total_days
         self.unscanned_books = [1 for _ in range(nbooks)]
         self.remaining_libs = [1 for _ in range(nlibs)]
         self.num_remaining_libs = nlibs
-        self.libraries = libraries #copy of libs in case we want to use threads?
 
-    def get_scores(self):
+    def get_scores(self, libraries):
         remaining_days = self.total_days - self.days
-        scores = [[id, *compute_score(lib, self.unscanned_books, remaining_days)] for id, lib in enumerate(self.libraries) if self.remaining_libs[id]]
+        scores = [[id, *compute_score(lib, self.unscanned_books, remaining_days)] for id, lib in enumerate(libraries) if self.remaining_libs[id]]
         sorted_scores = sorted(scores, key=lambda lib:lib[1], reverse=True)
         return sorted_scores
 
-    def update(self, best_lib_id, lib_book_ids, lib_score):
+    def update(self, libraries, best_lib_id, lib_book_ids, lib_score):
+        #add libs
+        self.id_libs.append(best_lib_id)
+        self.n_books.append(len(lib_book_ids))
+        self.books_per_lib.append(lib_book_ids)
         #remove days
-        self.days += self.libraries[best_lib_id].sign_up_time
+        assert (self.days + libraries[best_lib_id].sign_up_time) <= self.total_days
+        self.days += libraries[best_lib_id].sign_up_time
         #remove lib
         self.remaining_libs[best_lib_id] = 0
         self.num_remaining_libs -= 1
@@ -178,12 +178,12 @@ class Solution:
         self.total_score += lib_score
 
 
-def optimize_beam(libraries, all_books, days, k=2, verbose=0):
+
+def optimize_beam(libraries, all_books, days, k=1, verbose=0):
    
-  
     d = 0
     num_remaining_libs = len(libraries)
-    beam = [Solution(len(all_books), len(libraries), days, libraries)]
+    beam = [Solution(len(all_books), len(libraries), days)]
 
     best_sol = None
 
@@ -195,26 +195,34 @@ def optimize_beam(libraries, all_books, days, k=2, verbose=0):
                     best_sol = sol
                     print(best_sol.total_score)
                 continue
+            scores = sol.get_scores(libraries)[:k]
 
-            scores = sol.get_scores()[:k]
+            #if zero score add solution!
+            all_zero = sum([item[1] for item in scores]) == 0
+            if all_zero:
+                if best_sol is None or sol.total_score > best_sol.total_score:
+                    best_sol = sol
+                    print(best_sol.total_score)
+                continue    
+
             for score in scores:
                 nusol = copy.deepcopy(sol)
-                best_lib_id, _, best_lib_score, lib_book_ids = score
-                nusol.update(best_lib_id, lib_book_ids, best_lib_score)
-                all_solutions.append(nusol)
+                best_lib_id, heuristic_score, lib_score, lib_book_ids = score
 
-        all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)
+                if heuristic_score > 0:
+                    nusol.update(libraries, best_lib_id, lib_book_ids, lib_score)
+                    all_solutions.append(nusol)
+            
 
-        beam = all_solutions[:k]
-        print('current best: ', beam[0].total_score*1e-6, ' @', beam[0].days, '/', days)
+        if len(all_solutions):
+            all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:k]
+            print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
+        beam = all_solutions
 
+    total_score, id_libs, n_books, books_per_lib = best_sol.total_score, best_sol.id_libs, best_sol.n_books, best_sol.books_per_lib
 
-
-    total_score, id_libs, books_per_lib = best_sol.total_score, best_sol.id_libs, best_sol.books_per_lib
-
-    nbooks = [len(item) for item in best_sol.books_per_lib]
-
+    
     return total_score, id_libs, n_books, books_per_lib
 
 
@@ -231,7 +239,7 @@ def write_solution(result_file, id_libs, n_books, books_per_lib):
             file.write("\n")
 
 
-def run(tabs=[0,1,2,3,4,5]):
+def run(tabs=[0,1,2,3,4,5], beam_k=4):
     tab_input = ["a_example.txt",
                  "b_read_on.txt",
                  "c_incunabula.txt",
@@ -254,11 +262,14 @@ def run(tabs=[0,1,2,3,4,5]):
 
     total_to_beat = sum(current_scores)
 
+    #opt_fun = lambda x, y, z: optimize(x,y,z)
+    opt_fun = lambda x,y,z: optimize_beam(x,y,z,k=beam_k)
+
     total_score = 0
     for i, file in enumerate(tab_input):
         print(file)
         libraries, books, num_days = my_read("input/"+file)
-        file_score, id_libs, n_books, books_per_lib = optimize_beam(libraries, books, num_days)
+        file_score, id_libs, n_books, books_per_lib = opt_fun(libraries, books, num_days)
         total_score += file_score
 
         print(file, ': file score: ', file_score*1e-6, '/', current_scores[i], ' total score: ', total_score*1e-6, '/', total_to_beat)
@@ -272,12 +283,6 @@ def run(tabs=[0,1,2,3,4,5]):
 
     return total_score
 
-def run_d():
-    file = 'd_tough_choices.txt'
-    libraries, books, num_days = my_read("input/"+file)
-    file_score, id_libs, n_books, books_per_lib = optimize(libraries, books, num_days, 1)
-    result_file = "result/result_" + file
-    write_solution(result_file, id_libs, n_books, books_per_lib)
 
 
 if __name__ == '__main__':
@@ -289,15 +294,21 @@ if __name__ == '__main__':
                       type=int,
                       dest='list',
                       default=[0,1,2,3,4,5],
-                      help='<Required> Set flag',
+                      help='tab list',
                       required=True)
+    
+    parser.add_argument('--k',
+                      type=int,
+                      default=1,
+                      help='beam size')
     args = parser.parse_args()
     
     tabs = args.list
 
     print('run on: ', tabs)
+    print('beam size: ', args.k)
 
     start = time.time()
-    run(tabs)
+    run(tabs, args.k)
 
     print('program took: ', time.time()-start)
