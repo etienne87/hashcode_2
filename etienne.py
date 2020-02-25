@@ -68,7 +68,7 @@ def select_intersection(books, unscanned_books, num_shippable, early_stop=1):
     return books_shippable
 
 
-def compute_score(library, unscanned_books, remaining_days):
+def compute_score(library, unscanned_books, remaining_days, total_days):
     remaining_days_after = remaining_days - library.sign_up_time
     if remaining_days_after <= 0:
         return 0, 0, []
@@ -83,9 +83,38 @@ def compute_score(library, unscanned_books, remaining_days):
 
     #if enough time this is true else
 
-    weighted_score = total_score / math.pow(library.sign_up_time, 0.88) 
+    #weighted_score = total_score / math.pow(library.sign_up_time, 0.88) 
+
+    ratio = max(0.7, remaining_days/total_days * 1.6)
+
+    weighted_score = total_score / math.pow(library.sign_up_time, ratio) 
 
     return weighted_score, total_score, out_books_ids
+
+
+
+# def compute_score_simplified(library, unscanned_books, remaining_days, total_days):
+#     remaining_days_after = remaining_days - library.sign_up_time
+#     if remaining_days_after <= 0:
+#         return 0, 0, []
+
+#     num_shippable = remaining_days_after * library.shippable_per_day
+
+#     books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
+    
+#     total_score = sum([item.score for item in books_shippable])
+    
+#     out_books_ids = [book.id for book in books_shippable]
+
+#     #if enough time this is true else
+
+#     #weighted_score = total_score / math.pow(library.sign_up_time, 0.88) 
+
+    
+#     weighted_score = len(books_shippable)
+
+#     return weighted_score, total_score, out_books_ids
+
 
 
 def optimize(libraries, all_books, days, verbose=0):
@@ -110,7 +139,7 @@ def optimize(libraries, all_books, days, verbose=0):
         remaining_days = days-d
 
         #id, heuristic, total_score, book_ids
-        scores = [[id, *compute_score(lib, unscanned_books, remaining_days)] for id, lib in enumerate(libraries) if remaining_libs[id]]
+        scores = [[id, *compute_score(lib, unscanned_books, remaining_days, days)] for id, lib in enumerate(libraries) if remaining_libs[id]]
         sorted_scores = sorted(scores, key=lambda lib:lib[1], reverse=True)
         best_lib_id = sorted_scores[0][0]
         best_lib_id, _, best_lib_score, lib_book_ids = sorted_scores[0]
@@ -157,7 +186,7 @@ class Solution:
 
     def get_scores(self, libraries):
         remaining_days = self.total_days - self.days
-        scores = [[id, *compute_score(lib, self.unscanned_books, remaining_days)] for id, lib in enumerate(libraries) if self.remaining_libs[id]]
+        scores = [[id, *compute_score(lib, self.unscanned_books, remaining_days, self.total_days)] for id, lib in enumerate(libraries) if self.remaining_libs[id]]
         sorted_scores = sorted(scores, key=lambda lib:lib[1], reverse=True)
         return sorted_scores
 
@@ -179,13 +208,14 @@ class Solution:
 
 
 
-def optimize_beam(libraries, all_books, days, k=1, verbose=0):
+def optimize_beam(libraries, all_books, days, k=1, depth=5, verbose=0):
    
     d = 0
     num_remaining_libs = len(libraries)
     beam = [Solution(len(all_books), len(libraries), days)]
 
     best_sol = None
+    iter = 0
 
     while len(beam):
         all_solutions = []
@@ -214,10 +244,12 @@ def optimize_beam(libraries, all_books, days, k=1, verbose=0):
                     all_solutions.append(nusol)
             
 
-        if len(all_solutions):
+        if len(all_solutions) and iter%depth==0:
             all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:k]
             print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
+        iter += 1
+        
         beam = all_solutions
 
     total_score, id_libs, n_books, books_per_lib = best_sol.total_score, best_sol.id_libs, best_sol.n_books, best_sol.books_per_lib
