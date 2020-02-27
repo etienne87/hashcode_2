@@ -1,4 +1,4 @@
-import os, sys, glob, math, tqdm, time, copy, collections, heapq
+import os, sys, glob, math, tqdm, time, copy, collections, heapq, argparse
 from read import read_file
 
 DYNAMIC_OCC=0
@@ -10,7 +10,7 @@ class Book:
         self.occ = occ
 
     def weighted_score(self):
-        return self.score/math.sqrt(self.occ)
+        return self.score*math.sqrt(self.occ)
       
       
 
@@ -83,7 +83,7 @@ def compute_score(library, unscanned_books, remaining_days, total_days, occ=None
     if DYNAMIC_OCC:
         for i in range(len(library.books)):
             library.books[i].occ = occ[library.books[i].id]
-        library.sort_by_occ()
+        #library.sort_by_occ()
 
 
     books_shippable = select_intersection(library.books, unscanned_books, num_shippable)
@@ -92,12 +92,12 @@ def compute_score(library, unscanned_books, remaining_days, total_days, occ=None
     
     out_books_ids = [book.id for book in books_shippable]
 
-  
+    ratio = max(0.7, remaining_days/total_days * 1.45)
+
     if DYNAMIC_OCC:
         weighted_score = sum([item.weighted_score() for item in books_shippable])
-        weighted_score = weighted_score / math.pow(library.sign_up_time, 1) 
+        weighted_score = weighted_score / math.pow(library.sign_up_time, ratio) 
     else:
-        ratio = max(0.7, remaining_days/total_days * 2)
         weighted_score = total_score / math.pow(library.sign_up_time, ratio) 
 
     return weighted_score, total_score, out_books_ids
@@ -145,6 +145,11 @@ class Solution:
         num = "".join([str(item) for item in self.remaining_libs])
         return int(num,2)
 
+    def reorder(self, libraries):
+        libs = [libraries[id] for id in self.id_libs]
+        libs = sorted(libs, key=lambda lib:lib.sign_up_time)
+        #recompute score
+
 
 def select_topk(libs, k):
     return heapq.nlargest(libs, k)
@@ -156,13 +161,12 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
     num_remaining_libs = len(libraries)
     beam = [Solution(len(all_books), len(libraries), days, book_occ)]
 
-    #print some stats
+    # print some stats
     sign_up_times = [lib.sign_up_time for lib in libraries]
     sign_up_mean = sum(sign_up_times)/len(sign_up_times)
     sign_up_std = math.sqrt(sum([(item-sign_up_mean)**2 for item in sign_up_times])/len(sign_up_times))
     print('sign up time: avg: ', sign_up_mean)
     print('sign up time: var: ', sign_up_std)
-
     #best possible score?
     max_score = 0
     for book in all_books:
@@ -172,11 +176,14 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
  
     best_sol = None
     iter = 0
+    
 
-    pbar = tqdm.tqdm(total=days)
+    #pbar = tqdm.tqdm(total=days)
 
     while len(beam):
         all_solutions = []
+
+        beam_hash = {}
         for sol in beam:
             if sol.days == days:
                 if best_sol is None or sol.total_score >= best_sol.total_score:
@@ -190,6 +197,9 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
             # i keep however heapq as a good practice
             #scores = sorted(scores, key=lambda lib:lib[1], reverse=True)[:k]
             scores = heapq.nlargest(k, scores, key=lambda lib:lib[1])
+
+            scores = scores[:k]
+
 
             #if zero score add solution!
             all_zero = sum([item[1] for item in scores]) == 0
@@ -205,15 +215,25 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
 
                 if heuristic_score > 0:
                     nusol.update(libraries, best_lib_id, lib_book_ids, lib_score)
+                    hash_key = nusol.__hash__()
+                    if hash_key in beam_hash:
+                        other = beam_hash[hash_key]
+                        beam_hash[hash_key] = sol if sol.total_score > other.total_score else other
+                    else:
+                        beam_hash[hash_key] = nusol
+                    
                     all_solutions.append(nusol)
             
+
+        #prune very close solutions?
+
 
         if len(all_solutions) and iter%d==0:
 
             #all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:n]
             all_solutions = heapq.nlargest(n, all_solutions, key=lambda item:item.total_score)
 
-            #print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
+            # print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
         iter += 1
         
@@ -340,7 +360,6 @@ def run(tabs=[0,1,2,3,4,5], k=1, n=1, d=1):
 
 
 if __name__ == '__main__':
-    import argparse
     parser = argparse.ArgumentParser(description='book')
 
     parser.add_argument('--tabs',
