@@ -224,8 +224,7 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
             
 
         #prune very close solutions using hamming weight on lib hash?
-        print(len(all_solutions))
-
+        
 
         if len(all_solutions) and iter%d==0:
 
