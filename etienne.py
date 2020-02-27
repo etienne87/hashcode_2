@@ -193,12 +193,7 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
 
             scores = sol.get_scores(libraries)
             
-            # note: number of libs is not that big, sorting or heap is actually not that important
-            # i keep however heapq as a good practice
-            #scores = sorted(scores, key=lambda lib:lib[1], reverse=True)[:k]
             scores = heapq.nlargest(k, scores, key=lambda lib:lib[1])
-
-            scores = scores[:k]
 
 
             #if zero score add solution!
@@ -225,14 +220,12 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
                     all_solutions.append(nusol)
             
 
-        #prune very close solutions?
+        #prune very close solutions using hamming weight on lib hash keys?
+
 
 
         if len(all_solutions) and iter%d==0:
-
-            #all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:n]
             all_solutions = heapq.nlargest(n, all_solutions, key=lambda item:item.total_score)
-
             # print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
         iter += 1
