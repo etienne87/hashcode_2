@@ -75,7 +75,7 @@ def select_intersection(books, unscanned_books, num_shippable, early_stop=1):
 
 def compute_score(library, unscanned_books, remaining_days, total_days, occ=None):
     remaining_days_after = remaining_days - library.sign_up_time
-    if remaining_days_after <= 0:
+    if remaining_days_after < 0:
         return 0, 0, []
 
     num_shippable = remaining_days_after * library.shippable_per_day
@@ -100,6 +100,7 @@ def compute_score(library, unscanned_books, remaining_days, total_days, occ=None
     else:
         weighted_score = total_score / math.pow(library.sign_up_time, ratio) 
 
+   
     return weighted_score, total_score, out_books_ids
 
 
@@ -156,7 +157,7 @@ def select_topk(libs, k):
     return heapq.nlargest(libs, k)
 
 
-def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
+def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, pruning=False, verbose=0):
     book_occ = book_occurences_v2(libraries, len(all_books))
 
     num_remaining_libs = len(libraries)
@@ -193,10 +194,6 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
                 continue
 
             scores = sol.get_scores(libraries)
-            
-            # note: number of libs is not that big, sorting or heap is actually not that important
-            # i keep however heapq as a good practice
-            #scores = sorted(scores, key=lambda lib:lib[1], reverse=True)[:k]
             scores = heapq.nlargest(k, scores, key=lambda lib:lib[1])
 
             #if zero score add solution!
@@ -213,25 +210,22 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
 
                 if heuristic_score > 0:
                     nusol.update(libraries, best_lib_id, lib_book_ids, lib_score)
-                    hash_key = nusol.__hash__()
-                    if hash_key in beam_hash:
-                        other = beam_hash[hash_key]
-                        #print(other.total_score-nusol.total_score)
-                        beam_hash[hash_key] = nusol if nusol.total_score > other.total_score else other
+                    if pruning:
+                        hash_key = nusol.__hash__()
+                        if hash_key in beam_hash:
+                            other = beam_hash[hash_key]
+                            beam_hash[hash_key] = nusol if nusol.total_score > other.total_score else other
+                        else:
+                            beam_hash[hash_key] = nusol 
+                            all_solutions.append(nusol)
                     else:
-                        beam_hash[hash_key] = nusol 
                         all_solutions.append(nusol)
             
 
-        #prune very close solutions using hamming weight on lib hash?
-        
-
         if len(all_solutions) and iter%d==0:
+            all_solutions = heapq.nlargest(n, all_solutions, key=lambda item:item.total_score/item.days)
 
-            #all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:n]
-            all_solutions = heapq.nlargest(n, all_solutions, key=lambda item:item.total_score)
-
-            # print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
+            print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
         iter += 1
         
