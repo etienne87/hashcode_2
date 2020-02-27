@@ -118,6 +118,7 @@ class Solution:
         self.remaining_libs = [1 for _ in range(nlibs)]
         self.num_remaining_libs = nlibs
         self.book_occ = book_occ 
+        self.hashkey = int("".join([str(item) for item in self.remaining_libs]))
 
     def get_scores(self, libraries):
         remaining_days = self.total_days - self.days
@@ -140,10 +141,10 @@ class Solution:
             self.unscanned_books[book_id] = 0
             self.book_occ[book_id] -= 1
         self.total_score += lib_score
+        self.hashkey = int("".join([str(item) for item in self.remaining_libs]))
 
     def __hash__(self):
-        num = "".join([str(item) for item in self.remaining_libs])
-        return int(num,2)
+        return self.hashkey
 
     def reorder(self, libraries):
         libs = [libraries[id] for id in self.id_libs]
@@ -193,8 +194,10 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
 
             scores = sol.get_scores(libraries)
             
+            # note: number of libs is not that big, sorting or heap is actually not that important
+            # i keep however heapq as a good practice
+            #scores = sorted(scores, key=lambda lib:lib[1], reverse=True)[:k]
             scores = heapq.nlargest(k, scores, key=lambda lib:lib[1])
-
 
             #if zero score add solution!
             all_zero = sum([item[1] for item in scores]) == 0
@@ -213,19 +216,22 @@ def optimize_beam(libraries, all_books, days, k=2, d=3, n=2, verbose=0):
                     hash_key = nusol.__hash__()
                     if hash_key in beam_hash:
                         other = beam_hash[hash_key]
-                        beam_hash[hash_key] = sol if sol.total_score > other.total_score else other
+                        #print(other.total_score-nusol.total_score)
+                        beam_hash[hash_key] = nusol if nusol.total_score > other.total_score else other
                     else:
-                        beam_hash[hash_key] = nusol
-                    
-                    all_solutions.append(nusol)
+                        beam_hash[hash_key] = nusol 
+                        all_solutions.append(nusol)
             
 
-        #prune very close solutions using hamming weight on lib hash keys?
-
+        #prune very close solutions using hamming weight on lib hash?
+        print(len(all_solutions))
 
 
         if len(all_solutions) and iter%d==0:
+
+            #all_solutions = sorted(all_solutions, key=lambda item:item.total_score, reverse=True)[:n]
             all_solutions = heapq.nlargest(n, all_solutions, key=lambda item:item.total_score)
+
             # print('current best: ', all_solutions[0].total_score*1e-6, ' @', beam[0].days, '/', days)
      
         iter += 1
