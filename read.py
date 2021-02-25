@@ -26,12 +26,12 @@ def read_file(filename):
 def write_file(filename, intersection_dict):
     with open("output/{0}".format(filename), 'a') as the_file:
         the_file.truncate(0)
-        the_file.write("{0} \n".format(len(intersection_dict)))
+        the_file.write("{0} \n".format(len(intersection_dict))) # nbr intersection_dict
         for key, value in intersection_dict.items():
-            the_file.write("{0} \n".format(key))
-            the_file.write("{0} \n".format(len(value)))
+            the_file.write("{0} \n".format(key)) # intersection ID
+            the_file.write("{0} \n".format(len(value))) # nbr street for schedule in intersection
             for key_car, value_car in value.items():
-                the_file.write("{0} {1}\n".format(key_car,value_car))
+                the_file.write("{0} {1}\n".format(key_car,value_car)) # for each street in the intersection : street_name time
 
 
 if __name__ == '__main__':
