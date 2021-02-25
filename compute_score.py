@@ -53,10 +53,10 @@ def car_timings(car, schedule, streets):
         id_inter = streets[street][1]
 
         if stopped:
-            car_times.append((id_inter, 10000))
+            car_times.append((street, id_inter, 10000))
             break
 
-        car_times.append((id_inter, time))
+        car_times.append((street, id_inter, time))
 
         if id_inter not in schedule.keys():
             stopped = True
@@ -75,7 +75,7 @@ def compute_score(cars, schedule, streets, bonus, total_time):
     score = 0
     for car in cars:
         timings = car_timings(car,schedule,streets)
-        arrival = timings[-1][1]
+        arrival = timings[-1][-1]
         if arrival < total_time:
             score += total_time - arrival + bonus
 
