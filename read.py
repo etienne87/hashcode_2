@@ -18,9 +18,9 @@ def read_file(filename):
           path = car_desc[1:]
           cars.append(path)
 
+  
 
-
-    return streets, cars
+    return streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus
 
 
 def write_file(filename, intersection_dict):
@@ -35,7 +35,7 @@ def write_file(filename, intersection_dict):
 
 
 if __name__ == '__main__':
-    streets, cars = read_file('input/a.txt')
+    streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file('input/a.txt')
     print(streets)
     print(cars)
     write_file('a.txt',{1: {'street_name':1},2: {'stree_name_2':2}})
