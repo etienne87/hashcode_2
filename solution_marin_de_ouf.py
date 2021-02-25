@@ -2,6 +2,7 @@ import numpy as np
 import time
 from read import read_file, write_file
 import os
+from compute_score import compute_score
 
 
 def compute_length_path_car(list_cars, streets):
@@ -14,7 +15,7 @@ def compute_length_path_car(list_cars, streets):
         tab_time_cars.append(total_time)
     return np.array(tab_time_cars)
 
-def compute_length_path_car_with_solution(list_cars, streets, dict_schedule_solution):
+def compute_length_path_car_with_solution(list_cars, streets, dict_schedule_solution, magic_number_wait):
     tab_time_cars = []
     for car in list_cars:
         total_time = 0
@@ -26,7 +27,6 @@ def compute_length_path_car_with_solution(list_cars, streets, dict_schedule_solu
                 total_time += time_travel_street
             if id_inters_end_street in dict_schedule_solution:
                 current_dict_inters = dict_schedule_solution[id_inters_end_street]
-                magic_number_wait = 0.05
                 total_time += magic_number_wait*len(current_dict_inters)
 
         tab_time_cars.append(total_time)
@@ -46,10 +46,7 @@ def build_dict_inters_car(list_cars, streets):
 
     return full_dict_inters_car
 
-# def compute_schedule(dict_dict_street_time_arrived, schedule_inters):
-
-
-def build_dummy_schedule(full_dict_inters_car):
+def build_dummy_schedule(full_dict_inters_car, magic_number=0.5):
 
     dict_schedule_solution = {}
     for inters in full_dict_inters_car.keys():
@@ -57,7 +54,7 @@ def build_dummy_schedule(full_dict_inters_car):
         list_name_street = list(full_dict_inters_car[inters].keys())
         for name_street in list_name_street:
             current_nb_car = full_dict_inters_car[inters][name_street]
-            tab_nb_car.append(current_nb_car)
+            tab_nb_car.append(current_nb_car**magic_number)
 
         minimum_nb_car = np.min(tab_nb_car)
         tab_nb_car_normalized = tab_nb_car/minimum_nb_car
@@ -72,38 +69,46 @@ def build_dummy_schedule(full_dict_inters_car):
     return dict_schedule_solution
 
 tab_file = ["a.txt","b.txt","c.txt","d.txt","e.txt","f.txt"]
-for file in tab_file:
-    input_folder = "input"
-    name_file = file
-    streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file(os.path.join(input_folder, name_file))
-    duration = int(duration)
-    list_cars = cars
-    print("duration = ", duration)
-    start_time = time.time()
-    # print("time starting build_dict_inters_car = ", start_time)
-    tab_time_cars = compute_length_path_car(list_cars, streets)
-    indice_cars_usefull = np.where(tab_time_cars <= duration)[0]
-    list_cars_usefull = [list_cars[indice_car_usefull] for indice_car_usefull in indice_cars_usefull]
 
-    full_dict_inters_car = build_dict_inters_car(list_cars_usefull, streets)
-    print("duration build_dict_inters_car = ", time.time()-start_time)
-    start_time = time.time()
-    dict_schedule_solution = build_dummy_schedule(full_dict_inters_car)
-    print("duration build_dummy_schedule = ", time.time()-start_time)
+tab_sqrt_power = [0.4,0.51,0.6]
+for sqrt_power in tab_sqrt_power:
+    current_magic_number_wait = sqrt_power
 
-    nb_iter = 0
-    for iter in range(nb_iter):
-        tab_time_cars_with_solution = compute_length_path_car_with_solution(list_cars_usefull, streets, dict_schedule_solution)
-
-        indice_cars_usefull = np.where(tab_time_cars_with_solution <= duration)[0]
-        list_cars_usefull = [list_cars_usefull[indice_car_usefull] for indice_car_usefull in indice_cars_usefull]
+    for file in tab_file:
+        input_folder = "input"
+        name_file = file
+        streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file(os.path.join(input_folder, name_file))
+        duration = int(duration)
+        list_cars = cars
+        # print("duration = ", duration)
+        start_time = time.time()
+        # print("time starting build_dict_inters_car = ", start_time)
+        tab_time_cars = compute_length_path_car(list_cars, streets)
+        indice_cars_usefull = np.where(tab_time_cars <= duration)[0]
+        list_cars_usefull = [list_cars[indice_car_usefull] for indice_car_usefull in indice_cars_usefull]
 
         full_dict_inters_car = build_dict_inters_car(list_cars_usefull, streets)
-        print("duration build_dict_inters_car = ", time.time() - start_time)
+        print("duration build_dict_inters_car = ", time.time()-start_time)
         start_time = time.time()
-        dict_schedule_solution = build_dummy_schedule(full_dict_inters_car)
-        print("duration build_dummy_schedule = ", time.time() - start_time)
+        dict_schedule_solution = build_dummy_schedule(full_dict_inters_car, sqrt_power)
+        print("duration build_dummy_schedule = ", time.time()-start_time)
 
-    # print("dict_schedule_solution = ", dict_schedule_solution)
+        nb_iter = 1
+        for iter in range(nb_iter):
+            tab_time_cars_with_solution = compute_length_path_car_with_solution(list_cars_usefull, streets, dict_schedule_solution, 0.6)
 
-    write_file(name_file, dict_schedule_solution)
+            indice_cars_usefull = np.where(tab_time_cars_with_solution <= duration)[0]
+            list_cars_usefull = [list_cars_usefull[indice_car_usefull] for indice_car_usefull in indice_cars_usefull]
+
+            full_dict_inters_car = build_dict_inters_car(list_cars_usefull, streets)
+            print("duration build_dict_inters_car = ", time.time() - start_time)
+            start_time = time.time()
+            dict_schedule_solution = build_dummy_schedule(full_dict_inters_car, sqrt_power)
+            print("duration build_dummy_schedule = ", time.time() - start_time)
+
+        # print("dict_schedule_solution = ", dict_schedule_solution)
+
+        name_file_out = name_file+str(current_magic_number_wait)
+        write_file(name_file_out, dict_schedule_solution)
+
+        # print(compute_score(cars, dict_schedule_solution, streets, int(bonus), duration))
