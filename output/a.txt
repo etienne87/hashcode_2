@@ -1,7 +1,9 @@
 2 
 1 
-1 
-street_name 1
 2 
-1 
-stree_name_2 2
+rue-paris 3
+rue-rome 10
+2 
+2 
+rue-paris 3
+rue-rome2 10
