@@ -18,7 +18,7 @@ def read_file(filename):
           path = car_desc[1:]
           cars.append(path)
 
-  
+
 
     return streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus
 
