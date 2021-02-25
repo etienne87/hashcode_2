@@ -9,7 +9,7 @@ def compute_wait_time(street_to_arrival_times_map: dict, inters_schedule: list, 
     :return: total wait time (int)
     """
     #  schedule: ['rue-paris', 'rue-paris', 'rue-barcelone']
-    cycle = [duration * [street] for street, duration in inters_schedule]
+    cycle = [duration_ * [street] for street, duration_ in inters_schedule]
     factor = math.ceil(max_sim_time / len(cycle))
     schedule = factor * cycle
     schedule = [item for sublist in schedule for item in sublist]  # flatten list
@@ -17,14 +17,16 @@ def compute_wait_time(street_to_arrival_times_map: dict, inters_schedule: list, 
 
     total_wait_time = 0
     street_to_num_waiting_cars_map = {}
+    street_to_curr_arrival_idx_map = {street: 0 for street in street_to_arrival_times_map.keys()}
     for t, cur_green_street in enumerate(schedule):
         # let cars arrive
         for street_ in street_to_arrival_times_map.keys():
-            if t in street_to_arrival_times_map[street_]:
+            if street_to_curr_arrival_idx_map[street_] < len(street_to_arrival_times_map[street_]) and street_to_curr_arrival_idx_map[street_] == t:
                 if street_ in street_to_num_waiting_cars_map:
                     street_to_num_waiting_cars_map[street_] += 1
                 else:
                     street_to_num_waiting_cars_map[street_] = 1
+                street_to_curr_arrival_idx_map[street_] += 1
 
         # let car drive off
         if cur_green_street in street_to_num_waiting_cars_map and street_to_num_waiting_cars_map[cur_green_street] > 0:
