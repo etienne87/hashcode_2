@@ -5,6 +5,12 @@
 def read_file(filename):
     with open(filename, 'r') as f:
         duration, nb_inters, nb_streets, nb_cars, bonus = f.readline().rstrip("\n").split(' ')
+        print("duration {0}".format(duration))
+        print("nb_inters {0}".format(nb_inters))
+        print("nb_streets {0}".format(nb_streets))
+        print("nb_cars {0}".format(nb_cars))
+        print("bonus {0}".format(bonus))
+
 
         streets = {}
         for i in range(int(nb_streets)):

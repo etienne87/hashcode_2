@@ -58,8 +58,9 @@ def write_file_cheat(filename, intersection_dict):
         for key, value in intersection_dict.items():
             the_file.write("{0} \n".format(key)) # intersection ID
             the_file.write("{0} \n".format(len(value))) # nbr street for schedule in intersection
-            for value_car in value:
-                the_file.write("{0} 1\n".format(value_car[0],value_car[1])) # for each street in the intersection : street_name time
+
+            for value_car in sorted(value, key = lambda i: i[1]):
+                the_file.write("{0} {1}\n".format(value_car[0],value_car[1])) # for each street in the intersection : street_name time
 
 def processFile(name_file):
     streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file(os.path.join("input", name_file))
@@ -68,12 +69,12 @@ def processFile(name_file):
     start_time = time.time()
     # print("time starting build_dict_inters_car = ", start_time)
     full_dict_inters_car = build_dict_inters_car(list_cars, streets)
-    print("duration build_dict_inters_car = ", time.time()-start_time)
+    #print("duration build_dict_inters_car = ", time.time()-start_time)
     start_time = time.time()
     dict_schedule_solution = build_dummy_schedule(full_dict_inters_car)
-    print("duration build_dummy_schedule = ", time.time()-start_time)
+    #print("duration build_dummy_schedule = ", time.time()-start_time)
 
-    print("dict_schedule_solution = ", dict_schedule_solution)
+    #print("dict_schedule_solution = ", dict_schedule_solution)
 
     write_file_cheat(name_file, dict_schedule_solution)
 
@@ -87,4 +88,6 @@ name_files = [
 ]
 
 for name in name_files:
+  print(name)
   processFile(name)
+  print("\n\n")
