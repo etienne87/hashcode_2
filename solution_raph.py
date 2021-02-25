@@ -8,6 +8,10 @@ import os
 input_folder = "input"
 name_file = "a.txt"
 streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file(os.path.join(input_folder, name_file))
+duration = int(duration)
+nb_inters= int(nb_inters)
+bonus = int(bonus)
+
 list_cars = cars
 
 def build_dict_inters_car(list_cars, streets):
