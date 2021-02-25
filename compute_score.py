@@ -16,6 +16,8 @@ def find_waiting_time(time, inter_schedule, street):
             break
         first_green += tf_sch[1]
 
+    if time_green is None:
+        return -1
 
     time = time % cycle_length
 
@@ -44,24 +46,37 @@ def car_timings(car, schedule, streets):
 
     time = 0
     car_times = []
+    stopped = False
     for street in car:
-        if street!=car[0]:
+        if street != car[0]:
             time += streets[street][2]
         id_inter = streets[street][1]
+
+        if stopped:
+            car_times.append((id_inter, 10000))
+            break
+
         car_times.append((id_inter, time))
 
-        waiting_time = find_waiting_time(time, schedule[id_inter], street)
+        if id_inter not in schedule.keys():
+            stopped = True
+        else:
+            waiting_time = find_waiting_time(time, schedule[id_inter], street)
+            if waiting_time < 0:
+                stopped = True
 
-        time+=waiting_time
+        time += waiting_time
 
     return car_times
+
+
 
 def compute_score(cars, schedule, streets, bonus, total_time):
     score = 0
     for car in cars:
         timings = car_timings(car,schedule,streets)
         arrival = timings[-1][1]
-        if arrival <= total_time:
+        if arrival < total_time:
             score += total_time - arrival + bonus
 
     return score
