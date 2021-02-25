@@ -6,7 +6,7 @@ import os
 
 
 input_folder = "input"
-name_file = "a.txt"
+name_file = "d.txt"
 streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file(os.path.join(input_folder, name_file))
 duration = int(duration)
 nb_inters= int(nb_inters)
@@ -44,18 +44,7 @@ def build_dict_inters_car_list(list_cars, streets, schedule):
             else:
                 inters_car_list[inter][street].append(timing[2])
 
-
-
-        for street_name in car[:-1]:
-            id_inters_end_street = streets[street_name][1]
-            if not id_inters_end_street in full_dict_inters_car:
-                full_dict_inters_car[id_inters_end_street] = {}
-            if street_name in full_dict_inters_car[id_inters_end_street]:
-                full_dict_inters_car[id_inters_end_street][street_name] += 1
-            else:
-                full_dict_inters_car[id_inters_end_street][street_name] = 1
-
-    return full_dict_inters_car
+    return inters_car_list
 
 
 
@@ -84,8 +73,28 @@ def build_dummy_schedule(full_dict_inters_car):
     return dict_schedule_solution
 
 
+#
+# def find_best_schedule(street_to_arrival_times_map: dict):
+#     street_names = street_to_arrival_times_map.keys()
+#
+#
+#     generated_schedule = np.ones(street_names)
+#
+#     for street in street_names:
+#         alea = np.random.randint(5)
+#
+#
+#
 
-def find_best_schedule(inters_cars_list):
+
+
+
+
+
+
+
+
+
 
 
 
