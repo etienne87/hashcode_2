@@ -28,6 +28,39 @@ def build_dict_inters_car(list_cars, streets):
 
     return full_dict_inters_car
 
+
+def build_dict_inters_car_list(list_cars, streets, schedule):
+    inters_car_list = {}
+    for car in list_cars:
+        timings = car_timings(car, schedule=schedule, streets=streets)
+
+        for timing in timings[:-1]:
+            inter=timing[1]
+            street= timing[0]
+            if inter not in inters_car_list:
+                inters_car_list[inter] = {}
+            if street not in inters_car_list:
+                inters_car_list[inter][street] = [timing[2]]
+            else:
+                inters_car_list[inter][street].append(timing[2])
+
+
+
+        for street_name in car[:-1]:
+            id_inters_end_street = streets[street_name][1]
+            if not id_inters_end_street in full_dict_inters_car:
+                full_dict_inters_car[id_inters_end_street] = {}
+            if street_name in full_dict_inters_car[id_inters_end_street]:
+                full_dict_inters_car[id_inters_end_street][street_name] += 1
+            else:
+                full_dict_inters_car[id_inters_end_street][street_name] = 1
+
+    return full_dict_inters_car
+
+
+
+
+
 def build_dummy_schedule(full_dict_inters_car):
 
     dict_schedule_solution = {}
@@ -50,6 +83,26 @@ def build_dummy_schedule(full_dict_inters_car):
 
     return dict_schedule_solution
 
+
+
+def find_best_schedule(inters_cars_list):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 start_time = time.time()
 # print("time starting build_dict_inters_car = ", start_time)
 full_dict_inters_car = build_dict_inters_car(list_cars, streets)
@@ -62,6 +115,11 @@ print("dict_schedule_solution = ", dict_schedule_solution)
 
 score =compute_score(cars,dict_schedule_solution,streets,bonus,duration)
 print("hey score", score)
+
+print("hey dict arrivals")
+print(build_dict_inters_car_list(list_cars, streets, dict_schedule_solution))
+
+
 
 
 
