@@ -23,10 +23,22 @@ def read_file(filename):
     return streets, cars
 
 
+def write_file(filename, intersection_dict):
+    with open("output/{0}".format(filename), 'a') as the_file:
+        the_file.truncate(0)
+        the_file.write("{0} \n".format(len(intersection_dict)))
+        for key, value in intersection_dict.items():
+            the_file.write("{0} \n".format(key))
+            the_file.write("{0} \n".format(len(value)))
+            for key_car, value_car in value.items():
+                the_file.write("{0} {1}\n".format(key_car,value_car))
+
+
 if __name__ == '__main__':
     streets, cars = read_file('input/a.txt')
     print(streets)
     print(cars)
+    write_file('a.txt',{1: {'street_name':1},2: {'stree_name_2':2}})
 
 
 
