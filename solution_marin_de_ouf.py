@@ -40,11 +40,14 @@ def build_dict_inters_car(list_cars, streets):
             if not id_inters_end_street in full_dict_inters_car:
                 full_dict_inters_car[id_inters_end_street] = {}
             if street_name in full_dict_inters_car[id_inters_end_street]:
-                full_dict_inters_car[id_inters_end_street][street_name] += 0
+                full_dict_inters_car[id_inters_end_street][street_name] += 1
             else:
                 full_dict_inters_car[id_inters_end_street][street_name] = 1
 
     return full_dict_inters_car
+
+# def compute_schedule(dict_dict_street_time_arrived, schedule_inters):
+
 
 def build_dummy_schedule(full_dict_inters_car):
 
@@ -88,7 +91,7 @@ for file in tab_file:
     dict_schedule_solution = build_dummy_schedule(full_dict_inters_car)
     print("duration build_dummy_schedule = ", time.time()-start_time)
 
-    nb_iter = 1
+    nb_iter = 0
     for iter in range(nb_iter):
         tab_time_cars_with_solution = compute_length_path_car_with_solution(list_cars_usefull, streets, dict_schedule_solution)
 
