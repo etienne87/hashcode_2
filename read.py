@@ -18,13 +18,13 @@ def read_file(filename):
           path = car_desc[1:]
           cars.append(path)
 
+  
 
-
-    return streets, cars
+    return streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus
 
 
 if __name__ == '__main__':
-    streets, cars = read_file('input/a.txt')
+    streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus = read_file('input/a.txt')
     print(streets)
     print(cars)
 
