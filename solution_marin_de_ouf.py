@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from read import read_file
+from read import read_file, write_file
 import os
 
 
@@ -25,10 +25,10 @@ def build_dict_inters_car(list_cars, streets):
 
 def build_dummy_schedule(full_dict_inters_car):
 
-    tab_schedule_solution = {}
+    dict_schedule_solution = {}
     for inters in full_dict_inters_car.keys():
         tab_nb_car = []
-        list_name_street = full_dict_inters_car[inters].keys()
+        list_name_street = list(full_dict_inters_car[inters].keys())
         for name_street in list_name_street:
             current_nb_car = full_dict_inters_car[inters][name_street]
             tab_nb_car.append(current_nb_car)
@@ -36,14 +36,23 @@ def build_dummy_schedule(full_dict_inters_car):
         minimum_nb_car = np.min(tab_nb_car)
         tab_nb_car_normalized = tab_nb_car/minimum_nb_car
         schedule = tab_nb_car_normalized.astype(np.int32)
-        tab_schedule_solution[inters] = (schedule, list_name_street)
+        assert len(schedule) == len(list_name_street)
+        dict_schedule_solution[inters] = []
+        for ind_schedule in range(len(schedule)):
+            current_street_name = list_name_street[ind_schedule]
+            current_time_schedule = schedule[ind_schedule]
+            dict_schedule_solution[inters].append((current_street_name, current_time_schedule))
 
-    return tab_schedule_solution
+    return dict_schedule_solution
 
 start_time = time.time()
-print("time starting build_dict_inters_car = ", start_time)
-full_dict_inters_car = build_dict_inters_car(list_cars)
+# print("time starting build_dict_inters_car = ", start_time)
+full_dict_inters_car = build_dict_inters_car(list_cars, streets)
 print("duration build_dict_inters_car = ", time.time()-start_time)
 start_time = time.time()
-tab_schedule_solution = build_dummy_schedule(full_dict_inters_car)
+dict_schedule_solution = build_dummy_schedule(full_dict_inters_car)
 print("duration build_dummy_schedule = ", time.time()-start_time)
+
+print("dict_schedule_solution = ", dict_schedule_solution)
+
+write_file(name_file, dict_schedule_solution)
