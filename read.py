@@ -18,12 +18,21 @@ def read_file(filename):
           path = car_desc[1:]
           cars.append(path)
 
-  
+
 
     return streets, cars, duration, nb_inters, nb_streets, nb_cars, bonus
 
 
 def write_file(filename, intersection_dict):
+    """
+    # intersection_dict
+    {
+        3: [(rue-paris, 3), (rue-rome, 10)],
+        12: [(rue-paris, 3), (rue-rome2, 10)]
+    }
+    """
+
+
     with open("output/{0}".format(filename), 'a') as the_file:
         the_file.truncate(0)
         the_file.write("{0} \n".format(len(intersection_dict)))
