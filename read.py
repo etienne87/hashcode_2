@@ -31,8 +31,6 @@ def write_file(filename, intersection_dict):
         12: [(rue-paris, 3), (rue-rome2, 10)]
     }
     """
-
-
     with open("output/{0}".format(filename), 'a') as the_file:
         the_file.truncate(0)
         the_file.write("{0} \n".format(len(intersection_dict))) # nbr intersection_dict
