@@ -1,0 +1,59 @@
+a.txt
+duration 6
+nb_inters 4
+nb_streets 5
+nb_cars 2
+bonus 1000
+2,000 bonus points for cars arriving before the deadline (1,000 points each)
+0 points for early arrival times.
+
+2 of 2 cars arrived before the deadline (100%). The earliest car arrived at its destination after 6 seconds scoring 1,000 points, whereas the last car arrived at its destination after 6 seconds scoring 1,000 points. Cars that arrived within the deadline drove for an average of 6.00 seconds to arrive at their destination.
+
+The schedules for the 4 traffic lights had an average total cycle length of 2.00 seconds. A traffic light that turned green was scheduled to stay green for 2.00 seconds on average.
+
+
+
+
+
+b.txt
+duration 5070
+nb_inters 7073
+nb_streets 9102
+nb_cars 1000
+bonus 1000
+
+
+
+c.txt
+duration 1640
+nb_inters 10000
+nb_streets 35030
+nb_cars 1000
+bonus 100
+
+
+
+d.txt
+duration 8071
+nb_inters 8000
+nb_streets 95928
+nb_cars 1000
+bonus 1000
+
+
+
+e.txt
+duration 676
+nb_inters 500
+nb_streets 998
+nb_cars 1000
+bonus 500
+
+
+
+f.txt
+duration 1992
+nb_inters 1662
+nb_streets 10000
+nb_cars 1000
+bonus 500
