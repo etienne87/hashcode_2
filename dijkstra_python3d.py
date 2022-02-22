@@ -30,7 +30,7 @@ def dijkstra3d(matrix, start, end):
     certain[x0,y0,z0] = 1
     transitions = dict()
 
-    modu = int(0.2 * x_max*y_max*z_max)
+    #modu = int(0.2 * x_max*y_max*z_max)
 
     while priority_queue:
         cur_cost, (cur_x, cur_y, cur_z) = heapq.heappop(priority_queue)
@@ -43,7 +43,7 @@ def dijkstra3d(matrix, start, end):
                     x, y, z = cur_x + dx, cur_y + dy, cur_z + dz
                     if (0 <= x < x_max) and (0 <= y < y_max) and (0 <= z < z_max) and (dx, dy, dz) != (0, 0, 0) and not certain[x,y,z]:
                         # heuristic cost: euclidean distance
-                        heuristic_cost = 0 #np.sqrt( (x-xn)**2 + (y-yn)**2 + (z-zn)**2 )
+                        heuristic_cost = np.sqrt( (x-xn)**2 + (y-yn)**2 + (z-zn)**2 )
                         priority = matrix[x,y,z] + costs[cur_x,cur_y,cur_z] + heuristic_cost
                         if matrix[x,y,z] + costs[cur_x,cur_y,cur_z] < costs[x,y,z]:
                             costs[x,y,z] = matrix[x,y,z] + costs[cur_x,cur_y,cur_z]
@@ -66,13 +66,38 @@ def dijkstra3d(matrix, start, end):
         tour += [[cur_x,cur_y,cur_z]]
     return np.array(tour)
 
+def define_path(s, n=50, k=3):
+    weights = np.random.randn(s,s,s) + 100
+    path = np.zeros((s,s,s), dtype=np.uint8)
+    start = (0,0,0)
+    path[start[0],start[1],start[2]] = 1
+    dir = np.random.uniform(-1,1, (3,))
+    dir = dir/np.sqrt((dir**2).sum())
+    alpha = 0.9
+    cur = start
+    trans = [start]
+    for j in range(k):
+        for i in range(n):
+            cur = (cur + dir).astype(np.int32)
+            if cur[0] >= s or cur[1] >= s or cur[2] >= s:
+                break
+            if not (cur == trans[-1]).all():
+                path[cur[0],cur[1],cur[2]] = 1
+                weights[cur[0],cur[1],cur[2]] = 1
+                if i == 0:
+                    trans.append(cur)
+            dir = dir * alpha + np.random.uniform(-1,1, (3,)) * (1-alpha)
+    return weights, path, np.array(trans)
+
 
 
 def main(size):
     import time
-    weights = np.random.randn(size,size,size)
-    start = (0,0,0)
-    end = (size-1,size-1,size-1)
+    weights, dense, path = define_path(size, 100, 100)
+    start = np.random.randint(0, size-1, (3,)).tolist()
+    start = path[0]
+    end = path[-1]
+    print(path.shape, weights.shape, start, end)
 
     t1 = time.time()
     tour = dijkstra3d(weights, start, end)
