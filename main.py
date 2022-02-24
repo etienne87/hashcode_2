@@ -1,10 +1,20 @@
 import argparse
 import read
 from pathlib import Path
+from collections import defaultdict
 #import write
 #import scoring
 
 #from laurent import compute_result
+
+def make_map_of_skills(data):
+    skill_map = defaultdict(dict)
+    for contrib_name,skill_set in data.contributors.items(): 
+        for skill_name, value in skill_set.items():
+            if value not in skill_map[skill_name]:
+                skill_map[skill_name][value] = set()
+            skill_map[skill_name][value].add(contrib_name)
+    return skill_map
 
 
 
@@ -29,6 +39,9 @@ def main():
 
 
     data = read.read_file(input_fname)
+
+    skill_map = make_map_of_skills(data)
+    print(skill_map)
 #    result = compute_result(data)
 #
 #    write.write_result(result, output_fname)
