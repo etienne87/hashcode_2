@@ -4,8 +4,8 @@ from pathlib import Path
 from collections import defaultdict
 #import write
 #import scoring
-
 #from laurent import compute_result
+
 
 def make_map_of_skills(data):
     skill_map = defaultdict(dict)
@@ -15,6 +15,12 @@ def make_map_of_skills(data):
                 skill_map[skill_name][value] = set()
             skill_map[skill_name][value].add(contrib_name)
     return skill_map
+
+
+def remove_contrib_from_skill_map(skill_map, contrib, skillset):
+    for skill_name, skill_value in skillset.items():
+        skill_map[skill_name][skill_value].remove(contrib)
+
 
 
 
@@ -41,7 +47,15 @@ def main():
     data = read.read_file(input_fname)
 
     skill_map = make_map_of_skills(data)
+    print('num skills: ', len(skill_map.keys()))
+
+    # verify remove_contrib_from_skill_map
+    for contrib_name, skill_set in data.contributors.items():
+        remove_contrib_from_skill_map(skill_map, contrib_name, skill_set)
+
     print(skill_map)
+    
+
 #    result = compute_result(data)
 #
 #    write.write_result(result, output_fname)
