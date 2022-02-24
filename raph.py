@@ -14,7 +14,8 @@ import heapq
 def main():
     parser = argparse.ArgumentParser(description='input')
 
-    parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
+    # parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
+    parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
     parser.add_argument('--output-fname')
 
     args = parser.parse_args()
@@ -68,7 +69,6 @@ def main():
                 project_name = project[0]
                 if project_name in projects_done:
                     continue
-                print(skill_map)
                 valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map)
                 if not valid:
                     continue
