@@ -4,7 +4,7 @@ def read_file(filename):
     r = SimpleNamespace()
     with open(filename, 'r') as f:
         r.c, r.p = [int(x) for x in f.readline().strip().split()]
-        contributors = []
+        contributors = {}
         for contrib_lines in range(r.c):
             name, nb_skills = f.readline().strip().split()
             nb_skills = int(nb_skills)
@@ -13,7 +13,7 @@ def read_file(filename):
                 skill_name, skill_level = f.readline().strip().split()
                 skill_level = int(skill_level)
                 skills[skill_name] = skill_level
-            contributors.append({name: skills})
+            contributors[name] = skills
         projects = {}
         for p_num in range(r.p):
             line = f.readline().strip().split()
