@@ -12,8 +12,6 @@ from etienne import *
 
 
 
-
-
 def main():
     parser = argparse.ArgumentParser(description='input')
 
@@ -42,13 +40,13 @@ def main():
     selected = {}
 
     for project_name, data in data.projects.items():
-        update_contributor(data.skill_required, selected, data.contributors, skill_map) 
+        update_contributor(data.skill_required, selected, data.contributors, skill_map)
 
     # verify remove_contrib_from_skill_map
     # for contrib_name, skill_set in data.contributors.items():
     #     remove_contrib_from_skill_map(skill_map, contrib_name, skill_set)
     # print(skill_map)
-    
+
 
 #    result = compute_result(data)
 #

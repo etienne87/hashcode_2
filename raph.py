@@ -1,4 +1,5 @@
 import argparse
+from tkinter import N
 
 from etienne import update_contributors, make_map_of_skills, remove_contrib_from_skill_map
 import read
@@ -15,9 +16,9 @@ import heapq
 def main():
     parser = argparse.ArgumentParser(description='input')
 
-    parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
+    # parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
     # parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
-    # parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
+    parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
     # parser.add_argument('--input_fname', default="input/d_dense_schedule.in.txt")
     # parser.add_argument('--input_fname', default="input/e_exceptional_skills.in.txt")
     # parser.add_argument('--input_fname', default="input/f_find_great_mentors.in.txt")
@@ -52,6 +53,7 @@ def main():
 
     output_projects = []
 
+    total_score = 0
 
     search_project = True
 
@@ -75,6 +77,13 @@ def main():
                 valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map,contributors=contributors)
                 if not valid:
                     continue
+                if current_time + project[1].d <= project[1].b:
+                    total_score += project[1].s
+                else:
+                    total_score += max(0, project[1].s - ((current_time + project[1].d)- project[1].b ))
+                print(project)
+                print("TIME TIME", current_time)
+                print("TOTAL SCORE", total_score)
                 print("project found")
                 output_projects.append((project_name, project_contribs))
                 projects_done.add(project_name)
@@ -85,7 +94,7 @@ def main():
 
         current_time += 1
 
-
+    print(total_score)
 
 
 

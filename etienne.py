@@ -19,7 +19,8 @@ def update_contributors(skills_required, selected, contributors, skill_map):
         if skill_name not in contributors[contrib_name]:
             contributors[contrib_name][skill_name] = 1
         elif contributors[contrib_name][skill_name] <= skill_value:
-            contributors[contrib_name][skill_name] += 1
+            if skill_value < 10:
+                contributors[contrib_name][skill_name] += 1
 
     for contrib_name in selected:
         for skill in contributors[contrib_name]:

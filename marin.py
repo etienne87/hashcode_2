@@ -9,6 +9,8 @@ def score_project(project, time_start, nb_contributors_available):
     best_before = project.b
     nb_roles = project.r
 
+    return -days*nb_roles
+
     if nb_roles > nb_contributors_available:
         return 0
     if (time_start + days) <= best_before:
