@@ -1,5 +1,5 @@
 from read import read_file
-
+from etienne import make_map_of_skills, remove_contrib_from_skill_map, update_contributors
 tab_file_to_read = ["input/a_an_example.in.txt",
                 "input/b_better_start_small.in.txt",
                 "input/c_collaboration.in.txt",
@@ -53,12 +53,14 @@ def naive_assign_contrib_to_project(project, map_map_skill):
         current_name_skill = list(skill.keys())[0]
         current_level_skill = list(skill.values())[0]
         sub_map_current_skill = map_map_skill[current_name_skill]
+        print("sub_map_current_skill = ", sub_map_current_skill)
         found_contrib_for_skill = False
         for skill_level in range(current_level_skill, 11): # We check from current level to 10...
             set_list_contrib = sub_map_current_skill[skill_level]
             if len(set_list_contrib) > 0:
-                result_list.append((next(iter(set_list_contrib)), current_name_skill))
+                result_list.append((next(iter(set_list_contrib))))#, current_name_skill))
                 found_contrib_for_skill = True
+                break
 
         if not found_contrib_for_skill:
             print("Pas possible!!!")
@@ -67,8 +69,27 @@ def naive_assign_contrib_to_project(project, map_map_skill):
     print("Normalement on est bon")
     return True, result_list
 
-sorted_project = sorted(list_projects, key=lambda x: score_project(x[1], time_start, nb_contributors_available), reverse=True)
-print("sorted_project = ", sorted_project)
+map_map_skill = make_map_of_skills(readed_file)
+print("map_map_skill = ", map_map_skill)
 
-naive_assign_contrib_to_project(sorted_project[0], None, None)
+sorted_projects = sorted(list_projects, key=lambda x: score_project(x[1], time_start, nb_contributors_available), reverse=True)
+print("sorted_projects = ", sorted_projects)
 
+for chosen_project in sorted_projects:
+    success, result_list_contrib = naive_assign_contrib_to_project(chosen_project, map_map_skill)
+    print("success = ", success)
+    print("result_list_contrib = ", result_list_contrib)
+
+    if success:
+        sorted_projects.remove(chosen_project)
+        break
+
+print("map_map_skill before = ", map_map_skill)
+for contributor in result_list_contrib:
+    remove_contrib_from_skill_map(map_map_skill, contributor,dict_contributors[contributor])
+
+print("map_map_skill after = ", map_map_skill)
+
+print("dict_contributors before = ", dict_contributors)
+update_contributors(chosen_project[1].skill_required, result_list_contrib, dict_contributors, map_map_skill)
+print("dict_contributors after = ", dict_contributors)
