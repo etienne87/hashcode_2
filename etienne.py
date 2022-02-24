@@ -2,7 +2,7 @@ from collections import defaultdict
 
 def make_map_of_skills(data):
     skill_map = defaultdict(lambda:defaultdict(set))
-    for contrib_name,skill_set in data.contributors.items(): 
+    for contrib_name,skill_set in data.contributors.items():
         for skill_name, value in skill_set.items():
             skill_map[skill_name][value].add(contrib_name)
     return skill_map
@@ -23,5 +23,7 @@ def update_contributors(skills_required, selected, contributors, skill_map):
             elif contributors[contrib_name][skill_name] <= skill_value:
                 contributors[contrib_name][skill_name] += 1
 
+
+        for skill in contributors[contrib_name]:
             value = contributors[contrib_name][skill_name]
             skill_map[skill_name][value].add(contrib_name)
