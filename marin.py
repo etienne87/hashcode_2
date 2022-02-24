@@ -18,17 +18,17 @@ def score_project(project, time_start, nb_contributors_available):
 
 def naive_assign_contrib_to_project(project, map_map_skill):
     list_skill_needed = project[1].skill_required
-    print("project = ", project)
-    print("list_skill_needed = ", list_skill_needed)
+    #print("project = ", project)
+    #print("list_skill_needed = ", list_skill_needed)
 
     result_list = []
 
     for skill in list_skill_needed:
-        print("skill = ", skill)
+        #print("skill = ", skill)
         current_name_skill = list(skill.keys())[0]
         current_level_skill = list(skill.values())[0]
         sub_map_current_skill = map_map_skill[current_name_skill]
-        print("sub_map_current_skill = ", sub_map_current_skill)
+        #print("sub_map_current_skill = ", sub_map_current_skill)
         found_contrib_for_skill = False
         for skill_level in range(current_level_skill, 11): # We check from current level to 10...
             set_list_contrib = sub_map_current_skill[skill_level]
@@ -38,10 +38,10 @@ def naive_assign_contrib_to_project(project, map_map_skill):
                 break
 
         if not found_contrib_for_skill:
-            print("Pas possible!!!")
+            #print("Pas possible!!!")
             return False, result_list
 
-    print("Normalement on est bon")
+    #print("Normalement on est bon")
     return True, result_list
 
 def main():
