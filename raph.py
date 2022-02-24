@@ -1,5 +1,5 @@
 import argparse
-from etienne import update_contributors
+from etienne import update_contributors, make_map_of_skills, remove_contrib_from_skill_map
 import read
 from pathlib import Path
 from collections import defaultdict
@@ -7,19 +7,6 @@ import write
 from marin import naive_assign_contrib_to_project, score_project
 import heapq
 
-def make_map_of_skills(data):
-    skill_map = defaultdict(dict)
-    for contrib_name,skill_set in data.contributors.items():
-        for skill_name, value in skill_set.items():
-            if value not in skill_map[skill_name]:
-                skill_map[skill_name][value] = set()
-            skill_map[skill_name][value].add(contrib_name)
-    return skill_map
-
-
-def remove_contrib_from_skill_map(skill_map, contrib, skillset):
-    for skill_name, skill_value in skillset.items():
-        skill_map[skill_name][skill_value].remove(contrib)
 
 
 
@@ -27,8 +14,8 @@ def remove_contrib_from_skill_map(skill_map, contrib, skillset):
 def main():
     parser = argparse.ArgumentParser(description='input')
 
-    parser.add_argument('input_fname')
-    parser.add_argument('--output-fname', default=None)
+    parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
+    parser.add_argument('--output-fname')
 
     args = parser.parse_args()
 
@@ -81,6 +68,7 @@ def main():
                 project_name = project[0]
                 if project_name in projects_done:
                     continue
+                print(skill_map)
                 valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map)
                 if not valid:
                     continue
