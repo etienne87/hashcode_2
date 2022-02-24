@@ -1,2 +1,3 @@
 # hashcode_2
-hashcode 2022
+
+ for file in input/* ; do python r aph.py --input_fname $file ; done
