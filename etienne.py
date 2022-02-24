@@ -25,5 +25,5 @@ def update_contributors(skills_required, selected, contributors, skill_map):
 
 
         for skill in contributors[contrib_name]:
-            value = contributors[contrib_name][skill_name]
-            skill_map[skill_name][value].add(contrib_name)
+            value = contributors[contrib_name][skill]
+            skill_map[skill][value].add(contrib_name)
