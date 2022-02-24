@@ -3,7 +3,9 @@ import read
 from pathlib import Path
 from collections import defaultdict
 #import write
-#import scoring
+import write
+import scoring
+
 #from laurent import compute_result
 from etienne import *
 
@@ -51,8 +53,11 @@ def main():
 #    result = compute_result(data)
 #
 #    write.write_result(result, output_fname)
+    result = [('WebServer', ['Bob', 'Anna']), ('Logging', ['Anna']), ('WebChat', ['Maria', 'Bob'])]
 
-#    expected_score = scoring.compute_score(data, result)
+    write.write_result(result, output_fname)
+
+    expected_score = scoring.compute_score(data, result)
 #    print(f"Expected score is {expected_score}")
 
 
