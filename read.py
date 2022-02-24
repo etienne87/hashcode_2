@@ -14,7 +14,7 @@ def read_file(filename):
                 skill_level = int(skill_level)
                 skills[skill_name] = skill_level
             contributors.append({name: skills})
-        projects = []
+        projects = {}
         for p_num in range(r.p):
             line = f.readline().strip().split()
             p_name = line[0]
@@ -30,10 +30,7 @@ def read_file(filename):
                 skills_required.append({skill_required: skill_level_required})
 
             project.skill_required = skills_required
-            projects.append(project)
-
-
-
+            projects[p_name] = project
 
         r.contributors = contributors
         r.projects = projects
