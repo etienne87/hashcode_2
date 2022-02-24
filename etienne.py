@@ -4,8 +4,6 @@ def make_map_of_skills(data):
     skill_map = defaultdict(lambda:defaultdict(set))
     for contrib_name,skill_set in data.contributors.items(): 
         for skill_name, value in skill_set.items():
-            #if value not in skill_map[skill_name]:
-            #    skill_map[skill_name][value] = set()
             skill_map[skill_name][value].add(contrib_name)
     return skill_map
 
@@ -20,6 +18,10 @@ def update_contributors(skills_required, selected, contributors, skill_map):
     for contrib_name in selected:
         for skill in skills_required:
             skill_name, skill_value = list(skill.items())[0]
-            contributors[contrib_name][skill_name] += 1
+            if skill_name not in contributors[contrib_name]:
+                contributors[contrib_name][skill_name] = 1
+            else:
+                contributors[contrib_name][skill_name] += 1
+
             value = contributors[contrib_name][skill_name]
             skill_map[skill_name][value].add(contrib_name)
