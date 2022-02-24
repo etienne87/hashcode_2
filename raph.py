@@ -69,7 +69,7 @@ def main():
                 project_name = project[0]
                 if project_name in projects_done:
                     continue
-                valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map)
+                valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map,contributors=contributors)
                 if not valid:
                     continue
                 output_projects.append((project_name, project_contribs))

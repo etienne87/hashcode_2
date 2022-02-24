@@ -13,8 +13,20 @@ def remove_contrib_from_skill_map(skill_map, contrib, skillset):
         skill_map[skill_name][skill_value].remove(contrib)
 
 
-
 def update_contributors(skills_required, selected, contributors, skill_map):
+    for contrib_name, skill in zip(selected, skills_required):
+        skill_name, skill_value = list(skill.items())[0]
+        if skill_name not in contributors[contrib_name]:
+            contributors[contrib_name][skill_name] = 1
+        elif contributors[contrib_name][skill_name] <= skill_value:
+            contributors[contrib_name][skill_name] += 1
+
+
+    for skill in contributors[contrib_name]:
+        value = contributors[contrib_name][skill]
+        skill_map[skill][value].add(contrib_name)
+
+def update_contributors2(skills_required, selected, contributors, skill_map):
     for contrib_name in selected:
         for skill in skills_required:
             skill_name, skill_value = list(skill.items())[0]
