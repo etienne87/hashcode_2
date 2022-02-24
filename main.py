@@ -3,6 +3,7 @@ import read
 from pathlib import Path
 from collections import defaultdict
 #import write
+import write
 #import scoring
 
 #from laurent import compute_result
@@ -44,7 +45,9 @@ def main():
     print(skill_map)
 #    result = compute_result(data)
 #
-#    write.write_result(result, output_fname)
+    result = [{'WebServer': ['Bob', 'Anna']}, {'Logging': ['Anna']}, {'WebChat': ['Maria', 'Bob']}]
+
+    write.write_result(result, output_fname)
 
 #    expected_score = scoring.compute_score(data, result)
 #    print(f"Expected score is {expected_score}")
