@@ -47,7 +47,6 @@ def read_file(filename):
         #r.D_ingredients = set.union(*[set(x) for x in r.D])
         #r.ingredients = r.L_ingredients.union(r.D_ingredients)
 
-    print(r)
     return r
 
 

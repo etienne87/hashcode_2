@@ -1,4 +1,6 @@
 import argparse
+
+from jmespath import search
 from etienne import update_contributors, make_map_of_skills, remove_contrib_from_skill_map
 import read
 from pathlib import Path
@@ -15,7 +17,11 @@ def main():
     parser = argparse.ArgumentParser(description='input')
 
     # parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
-    parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
+    # parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
+    # parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
+    # parser.add_argument('--input_fname', default="input/d_dense_schedule.in.txt")
+    parser.add_argument('--input_fname', default="input/e_exceptional_skills.in.txt")
+    # parser.add_argument('--input_fname', default="input/f_find_great_mentors.in.txt")
     parser.add_argument('--output-fname')
 
     args = parser.parse_args()
@@ -47,23 +53,21 @@ def main():
 
     output_projects = []
 
-    sorted_projects = sorted(list_projects, key=lambda x: score_project(x[1], current_time, nb_contributors_available), reverse=True)
 
     search_project = True
 
-    while current_time < 10**6:
+    while current_time < 10**15:
+        print(len(project_end_dates))
+        if len(project_end_dates) == 0 and search_project==False:
+            break
         if len(project_end_dates)>0:
-            (first_end_date, tuple_project, project_contribs) = project_end_dates[0]
-            while current_time >= first_end_date:
-                search_project = True
-                (first_end_date, tuple_project, project_contribs) = heapq.heappop(project_end_dates)
-                update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
-                if len(project_end_dates)>0:
-                    (first_end_date, tuple_project, project_contribs) = project_end_dates[0]
-                else:
-                    break
+            (first_end_date, tuple_project, project_contribs) = heapq.heappop(project_end_dates)
+            current_time = first_end_date
+            search_project = True
+            update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
 
         if search_project:
+            sorted_projects = sorted(list_projects, key=lambda x: score_project(x[1], current_time, nb_contributors_available), reverse=True)
             search_project = False
             for project in sorted_projects:
                 project_name = project[0]
@@ -72,6 +76,7 @@ def main():
                 valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map,contributors=contributors)
                 if not valid:
                     continue
+                print("project found")
                 output_projects.append((project_name, project_contribs))
                 projects_done.add(project_name)
                 for contrib in project_contribs:
