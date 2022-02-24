@@ -31,7 +31,15 @@ def naive_assign_contrib_to_project(project, map_map_skill, contributors):
         sub_map_current_skill = map_map_skill[current_name_skill]
         #print("sub_map_current_skill = ", sub_map_current_skill)
         found_contrib_for_skill = False
-        for skill_level in range(current_level_skill, 11): # We check from current level to 10...
+
+        minimal_skil_level = current_level_skill
+        for contrib_already_chosen in chosen_set:
+            if current_name_skill in contributors[contrib_already_chosen] and contributors[contrib_already_chosen][current_name_skill] >= current_level_skill:
+                minimal_skil_level = current_level_skill - 1
+                #print("We can mentor")
+                break
+
+        for skill_level in range(minimal_skil_level, 11): # We check from current level to 10...
             set_list_contrib = sub_map_current_skill[skill_level]
             for contrib_name in set_list_contrib:
                 if contrib_name not in chosen_set:
