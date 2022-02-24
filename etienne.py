@@ -21,10 +21,10 @@ def update_contributors(skills_required, selected, contributors, skill_map):
         elif contributors[contrib_name][skill_name] <= skill_value:
             contributors[contrib_name][skill_name] += 1
 
-
-    for skill in contributors[contrib_name]:
-        value = contributors[contrib_name][skill]
-        skill_map[skill][value].add(contrib_name)
+    for contrib_name in selected:
+        for skill in contributors[contrib_name]:
+            value = contributors[contrib_name][skill]
+            skill_map[skill][value].add(contrib_name)
 
 def update_contributors2(skills_required, selected, contributors, skill_map):
     for contrib_name in selected:

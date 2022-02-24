@@ -12,7 +12,7 @@ def score_project(project, time_start, nb_contributors_available):
     if nb_roles > nb_contributors_available:
         return 0
     if (time_start + days) <= best_before:
-        return score/(nb_roles*days)
+        return score/(nb_roles*days + best_before-time_start-days)
     else:
         return (score - (best_before - time_start - days))/(nb_roles*days)
 

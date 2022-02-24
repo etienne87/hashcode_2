@@ -1,6 +1,5 @@
 import argparse
 
-from jmespath import search
 from etienne import update_contributors, make_map_of_skills, remove_contrib_from_skill_map
 import read
 from pathlib import Path
@@ -16,11 +15,11 @@ import heapq
 def main():
     parser = argparse.ArgumentParser(description='input')
 
-    # parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
+    parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
     # parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
     # parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
     # parser.add_argument('--input_fname', default="input/d_dense_schedule.in.txt")
-    parser.add_argument('--input_fname', default="input/e_exceptional_skills.in.txt")
+    # parser.add_argument('--input_fname', default="input/e_exceptional_skills.in.txt")
     # parser.add_argument('--input_fname', default="input/f_find_great_mentors.in.txt")
     parser.add_argument('--output-fname')
 
