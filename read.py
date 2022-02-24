@@ -29,7 +29,7 @@ def read_file(filename):
                 skill_level_required = int(skill_level_required)
                 skills_required.append({skill_required: skill_level_required})
 
-            project.skill_required = skill_required
+            project.skill_required = skills_required
             projects.append(project)
 
 
