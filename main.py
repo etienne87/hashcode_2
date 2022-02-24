@@ -3,24 +3,11 @@ import read
 from pathlib import Path
 from collections import defaultdict
 #import write
-import write
 #import scoring
 #from laurent import compute_result
+from etienne import *
 
 
-def make_map_of_skills(data):
-    skill_map = defaultdict(dict)
-    for contrib_name,skill_set in data.contributors.items(): 
-        for skill_name, value in skill_set.items():
-            if value not in skill_map[skill_name]:
-                skill_map[skill_name][value] = set()
-            skill_map[skill_name][value].add(contrib_name)
-    return skill_map
-
-
-def remove_contrib_from_skill_map(skill_map, contrib, skillset):
-    for skill_name, skill_value in skillset.items():
-        skill_map[skill_name][skill_value].remove(contrib)
 
 
 
@@ -50,18 +37,20 @@ def main():
     skill_map = make_map_of_skills(data)
     print('num skills: ', len(skill_map.keys()))
 
-    # verify remove_contrib_from_skill_map
-    for contrib_name, skill_set in data.contributors.items():
-        remove_contrib_from_skill_map(skill_map, contrib_name, skill_set)
+    selected = {}
 
-    print(skill_map)
+    for project_name, data in data.projects.items():
+        update_contributor(data.skill_required, selected, data.contributors, skill_map) 
+
+    # verify remove_contrib_from_skill_map
+    # for contrib_name, skill_set in data.contributors.items():
+    #     remove_contrib_from_skill_map(skill_map, contrib_name, skill_set)
+    # print(skill_map)
     
 
 #    result = compute_result(data)
 #
-    result = [{'WebServer': ['Bob', 'Anna']}, {'Logging': ['Anna']}, {'WebChat': ['Maria', 'Bob']}]
-
-    write.write_result(result, output_fname)
+#    write.write_result(result, output_fname)
 
 #    expected_score = scoring.compute_score(data, result)
 #    print(f"Expected score is {expected_score}")
