@@ -1,12 +1,11 @@
 import argparse
-from tkinter import N
 
 from etienne import update_contributors, make_map_of_skills, remove_contrib_from_skill_map
 import read
 from pathlib import Path
 from collections import defaultdict
 import write
-from marin import naive_assign_contrib_to_project, score_project
+from marin import naive_assign_contrib_to_project, score_project, score_project_compute_score
 import heapq
 
 
@@ -66,6 +65,14 @@ def main():
             current_time = first_end_date
             search_project = True
             update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
+            while len(project_end_dates)>0 and (project_end_dates[0][0] <= current_time):
+                print("C est mieux de faire ca!!")
+                (first_end_date, tuple_project, project_contribs) = heapq.heappop(project_end_dates)
+                current_time = first_end_date
+                search_project = True
+                update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
+            # if len(project_end_dates)>0 and project_end_dates[0][0] <= current_time:
+            #     print("Y a un probleme, project_end_dates[0][0] = ", project_end_dates[0][0], " et current_time = ", current_time)
 
         if search_project:
             sorted_projects = sorted(list_projects, key=lambda x: score_project(x[1], current_time, nb_contributors_available), reverse=True)
@@ -81,10 +88,10 @@ def main():
                     total_score += project[1].s
                 else:
                     total_score += max(0, project[1].s - ((current_time + project[1].d)- project[1].b ))
-                print(project)
-                print("TIME TIME", current_time)
+                #print(project)
+                #print("TIME TIME", current_time)
                 print("TOTAL SCORE", total_score)
-                print("project found")
+                #print("project found")
                 output_projects.append((project_name, project_contribs))
                 projects_done.add(project_name)
                 for contrib in project_contribs:

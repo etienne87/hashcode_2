@@ -9,14 +9,27 @@ def score_project(project, time_start, nb_contributors_available):
     best_before = project.b
     nb_roles = project.r
 
-    return -days*nb_roles
+    # return -days + score/100
 
-    if nb_roles > nb_contributors_available:
-        return 0
     if (time_start + days) <= best_before:
-        return score/(nb_roles*days + best_before-time_start-days)
+        return score/(nb_roles*days)
     else:
-        return (score - (best_before - time_start - days))/(nb_roles*days)
+        return (score - (time_start + days - best_before))/(nb_roles*days)
+
+def score_project_compute_score(project, time_start, nb_contributors_available):
+    #print("project in score_project = ", project)
+    #print("skill_required = ", project.skill_required)
+    days = project.d
+    score = project.s
+    best_before = project.b
+    nb_roles = project.r
+
+    #if nb_roles > nb_contributors_available:
+    #    return 0
+    if (time_start + days) <= best_before:
+        return score
+    else:
+        return max(0,(score - (time_start + days - best_before)))
 
 def naive_assign_contrib_to_project(project, map_map_skill, contributors):
     list_skill_needed = project[1].skill_required
@@ -43,13 +56,24 @@ def naive_assign_contrib_to_project(project, map_map_skill, contributors):
 
         for skill_level in range(minimal_skil_level, 11): # We check from current level to 10...
             set_list_contrib = sub_map_current_skill[skill_level]
+            current_contrib = None
+            max_skill_usefull = -10
             for contrib_name in set_list_contrib:
+
                 if contrib_name not in chosen_set:
-                    result_list.append(contrib_name)#, current_name_skill))
-                    chosen_set.add(contrib_name)
-                    found_contrib_for_skill = True
-                    break
+                    nb_skill_contrib = 0
+                    for skill_contrib in contributors[contrib_name]:
+                        if skill_contrib in [list(baldict.keys())[0] for baldict in list_skill_needed]:
+                            nb_skill_contrib += 1
+
+                    if nb_skill_contrib > max_skill_usefull:
+                        found_contrib_for_skill = True
+                        current_contrib = contrib_name
+                        max_skill_usefull = nb_skill_contrib
+
             if found_contrib_for_skill:
+                result_list.append(current_contrib)  # , current_name_skill))
+                chosen_set.add(current_contrib)
                 break
 
         if not found_contrib_for_skill:
