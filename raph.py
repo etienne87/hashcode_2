@@ -16,8 +16,8 @@ def main():
     parser = argparse.ArgumentParser(description='input')
 
     # parser.add_argument('--input_fname', default="input/a_an_example.in.txt")
-    # parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
-    parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
+    parser.add_argument('--input_fname', default="input/b_better_start_small.in.txt")
+    # parser.add_argument('--input_fname', default="input/c_collaboration.in.txt")
     # parser.add_argument('--input_fname', default="input/d_dense_schedule.in.txt")
     # parser.add_argument('--input_fname', default="input/e_exceptional_skills.in.txt")
     # parser.add_argument('--input_fname', default="input/f_find_great_mentors.in.txt")
@@ -40,11 +40,13 @@ def main():
     data = read.read_file(input_fname)
     current_time = 0
     projects = data.projects
-    skill_map = make_map_of_skills(data)
+    skill_map, list_all_skill = make_map_of_skills(data)
     contributors = data.contributors
-    list_projects = projects.items()
 
-    nb_contributors_available= 10**5
+
+    list_projects = projects.items()
+    available_contributors = list(data.contributors.keys())
+    nb_contributors_available = len(available_contributors)
 
     project_end_dates = []
 
@@ -55,7 +57,7 @@ def main():
     total_score = 0
 
     search_project = True
-
+    nb_of_execpt = 0
     while current_time < 10**15:
         print(len(project_end_dates))
         if len(project_end_dates) == 0 and search_project==False:
@@ -65,12 +67,15 @@ def main():
             current_time = first_end_date
             search_project = True
             update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
-            while len(project_end_dates)>0 and (project_end_dates[0][0] <= current_time):
-                print("C est mieux de faire ca!!")
-                (first_end_date, tuple_project, project_contribs) = heapq.heappop(project_end_dates)
-                current_time = first_end_date
-                search_project = True
-                update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
+            for cur_project_contrib in project_contribs:
+                available_contributors.append(cur_project_contrib)
+            nb_contributors_available = len(available_contributors)
+            # while len(project_end_dates)>0 and (project_end_dates[0][0] <= current_time):
+            #     print("C est mieux de faire ca!!")
+            #     (first_end_date, tuple_project, project_contribs) = heapq.heappop(project_end_dates)
+            #     current_time = first_end_date
+            #     search_project = True
+            #     update_contributors(tuple_project[1].skill_required, project_contribs, contributors, skill_map)
             # if len(project_end_dates)>0 and project_end_dates[0][0] <= current_time:
             #     print("Y a un probleme, project_end_dates[0][0] = ", project_end_dates[0][0], " et current_time = ", current_time)
 
@@ -81,7 +86,8 @@ def main():
                 project_name = project[0]
                 if project_name in projects_done:
                     continue
-                valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map,contributors=contributors)
+                valid, project_contribs = naive_assign_contrib_to_project(project, map_map_skill=skill_map,
+                                                                          contributors=contributors, available_contributors=available_contributors)
                 if not valid:
                     continue
                 if current_time + project[1].d <= project[1].b:
@@ -94,8 +100,16 @@ def main():
                 #print("project found")
                 output_projects.append((project_name, project_contribs))
                 projects_done.add(project_name)
+                # try:
                 for contrib in project_contribs:
                     remove_contrib_from_skill_map(skill_map, contrib, contributors[contrib])
+
+                    available_contributors.remove(contrib)
+                nb_contributors_available = len(available_contributors)
+                # except KeyError:
+                #     nb_of_execpt += 1
+                #     if nb_of_execpt % 50 == 0:
+                #         print("pourquoi? nb_of_execpt = ", nb_of_execpt)
                 project_end_date = current_time + project[1].d
                 heapq.heappush(project_end_dates, (project_end_date,project, project_contribs))
 
